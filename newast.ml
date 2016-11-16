@@ -60,7 +60,7 @@ type functiondecl =
 	ftyp: typ_f;
 	fname: string;
 	formals: bind list;
-	locals: bind list;
+	locals: variabledecl list;
 	body: stmt list;
 	}
 
