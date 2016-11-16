@@ -1,12 +1,8 @@
-(* array and poly element can only be: complex, int, float --primary_ap, typ_a *)
-(* array is initiated in the beggging, and remain unchanged, that means the value of the element can be extracted,
-	but cannot be assigned or changed. Size must be indicated *)
-
 %{ open Ast %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token LBRACKET RBRACKET LLBRACKET RRBRACKET
-%token PLUS MINUS TIMES DIVIDE ADDONE MINUSONE MODULUS VB ASSIGN 
+%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN 
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
 %token RETURN IF ELSE FOR FOREACH IN WHILE 
 %token INT FLOAT BOOL VOID COMPLEX POLY STRING
@@ -36,6 +32,9 @@
 
 %%
 
+/* array and poly element can only be: complex, int, float --primary_ap, typ_a 
+array is initiated in the beggging, and remain unchanged, that means the value of the element can be extracted,
+	but cannot be assigned or changed. Size must be indicated */
 program:
 	decls EOF { $1 }
 
@@ -45,7 +44,7 @@ decls:
 	| decls fdecl { fst $1, ($2 :: snd $1) }
 
 fdecl:
-   typ_f ID LPAREN formal_list_opt RPAREN LBRACE vdecl_list_opt stmt_list_opt RBRACE
+   typ_f ID LPAREN formal_list_opt RPAREN LBRACE vdecl_list_opt stmt_list_rev RBRACE
      { typ = $1;
 	 fname = $2;
 	 formals = $4;
@@ -53,7 +52,7 @@ fdecl:
 	 body = List.rev $8  }
 
 typ_f: /* primary type with void for function returns */
-	typ { Typ( $1 ) }
+	typ { Typi( $1 ) }
 	| VOID { Void }
 
 typ: /* primary type */
@@ -62,18 +61,18 @@ typ: /* primary type */
 	| STRING { String }
 	| POLY { Poly }
 
-typ_a: (* for array type *)
+typ_a: /* for array type */
 	INT { Int }
 	| FLOAT { Float }
 	| COMPLEX { Comp }
 
 formal:
   	typ ID 		 							{ ( $1,$2, Prim ) }
-  	| typ_a LBRACKET INTLIT RBRACKET ID			{ ($1,$4, Array) }
+  	| typ_a LBRACKET INTLIT RBRACKET ID			{ ($1,$3, Array) }
 
 formal_list:
 	formal                  { [ $1 ] }
-	| formal_list COMMA formal { $2 :: $1 }
+	| formal_list COMMA formal { $3 :: $1 }
 
 formal_list_opt:
     /* nothing */ { [] }
@@ -87,12 +86,12 @@ vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
 	| typ ID ASSIGN primary SEMI                   { Primdecl_i($1, $2, $4) }
 	| typ_a LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
-	| typ_a LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $7) }
+	| typ_a LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
 /* */
 
 stmt_list_rev:
 	stmt { $1 }
-	| stmt_list stmt { $2 :: $1 }
+	| stmt_list_rev stmt { $2 :: $1 }
 
 stmt:
 	expr SEMI { Expr $1 }
@@ -126,16 +125,12 @@ expr:
 	/*  one operand */
 	| MINUS expr %prec NEG { Unop(Neg, $2) }
 	| NOT expr         { Unop(Not, $2) }  
-	| PLUSONE	expr	{ Unop( Addone, $1 ) }
-	| MINUSONE expr { Unop( Subsone, $1 ) }
+	| PLUSONE	expr	{ Unop( Addone, $2 ) }
+	| MINUSONE expr { Unop( Subsone, $2 ) }
 	/* function call */
 	| ID LPAREN expr_list_opt RPAREN { Call( $1, $3 ) }
 	/* assignment */
-	| lvalue ASSIGN expr { Asn( $1, $3 ) }
-
-lvalue:
-	ID   { Idasn( $1 )} /* assignment of poly, array, int, float, bool, string, complex */
-	| ID LLBRACKET INTLIT RRBRACKET   { Polyasn( $1, $3 ) }/* assignment of poly coefficient */
+	| extr_asn_value ASSIGN expr { Asn( $1, $3 ) }
 
 primary_list:
 	| primary	{ [ $1 ] }
@@ -159,13 +154,13 @@ primary_ap_list:
 primary_ap: /* what can exist in an array or in poly */
 	primary_c  	{ Prim_c( $1 ) }
 	  /* complex, real and im can all be void, then take it as 0 */
-	| LT primary_c COMMA primary_c RT			{ Comp( $2, $4 ) }
-	| extrvalue		   { Extr( $1 ) }
+	| LT primary_c COMMA primary_c GT			{ Comp( $2, $4 ) }
+	| extr_asn_value		   { Extr( $1 ) }
 
-extrvalue:/* value can be expressed by ID, ID[3] for array, ID[[3]] for poly */
+extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for poly */
 	ID   	{ Id( $1 )}
-	| ID LLBRACKET INTLIT RRBRACKET 		{ Polyextr( $1, $3 ) }(/* for poly extraction */
-	| ID LBRACKET INTLIT RBRACKET 	{ Arrextr( $1, $3 ) }/* for array extraction */
+	| ID LLBRACKET INTLIT RRBRACKET 		{ Poly_extr_asn( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
+	| ID LBRACKET INTLIT RBRACKET 	{ Arr_extr_asn( $1, $3 ) }/* for array extraction */ /* assignment of poly, array, int, float, bool, string, complex */
 
 primary_c_opt:
 		{ Noexpr }

@@ -49,11 +49,11 @@ type stmt =
 	| Foreach of expr list * stmt list 
 	| While of expr * stmt list
 
-type variabledecl =
-	Primdecl of string * string 
-	| Primdecl_i of string * string * primary 
-	| Prrdecl of string * string * int 
-	| Prrdecl_i of string * string * int * primary_ap list
+type variabledecl = 
+	Primdecl of typ * string
+	Primdecl_i of typ * string * primary
+	Arrdecl of typ * string * int
+	Arrdecl_i of typ * string * int primary_ap list 
 
 type functiondecl = 
 	{ 
