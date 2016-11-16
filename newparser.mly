@@ -83,11 +83,11 @@ vdecl_list_opt:
 			{ [] }
 	| vdecl_list_opt vdecl 			{$2 :: $1}
 
-primdecl:
-	typ ID SEMI                                     { ($1, $2, 0) }
-	| typ ID ASSIGN primary SEMI                   { ($1, $2, $4) }
-	| typ_a LBRACKET INTLIT RBRACKET ID SEMI                           { ($1, $5, $3, []) }
-	| typ_a LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { ($1, $5, $3, List.rev $7) }
+vdecl:
+	typ ID SEMI                                     { Primdecl($1, $2) }
+	| typ ID ASSIGN primary SEMI                   { Primdecl_i($1, $2, $4) }
+	| typ_a LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
+	| typ_a LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $7) }
 /* */
 
 stmt_list_rev:

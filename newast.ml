@@ -49,9 +49,11 @@ type stmt =
 	| Foreach of expr list * stmt list 
 	| While of expr * stmt list
 
-type primarydecl = typ * string * primary
-
-type arraydecl = typ * string * int * primary_ap list 
+type variabledecl =
+	Primdecl of string * string 
+	| Primdecl_i of string * string * primary 
+	| Prrdecl of string * string * int 
+	| Prrdecl_i of string * string * int * primary_ap list
 
 type functiondecl = 
 	{ 
@@ -62,4 +64,4 @@ type functiondecl =
 	body: stmt list;
 	}
 
-type program = primarydecl list * arraydecl list * functiondecl list
+type program = variabledecl list * functiondecl list 
