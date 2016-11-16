@@ -45,7 +45,7 @@ let string_of_p_c = function
     Intlit(i) -> string_of_int i
   | Floatlit(f) -> string_of_float f
 
-let string_of_c (a,b)=  "<" ^ string_of_p_c a ^ "," ^ string_of_p_c b
+let string_of_c (a,b)=  "<" ^ string_of_p_c a ^ "," ^ string_of_p_c b  ^ ">"
 
 
 
