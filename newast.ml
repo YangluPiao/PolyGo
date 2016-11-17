@@ -4,17 +4,16 @@ type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Ge
 type unop = Neg | Not | Addone | Subone
 type typ_a = INT | FLOAT | COMPLEX
 type typ = Typ_a of tpy_a | BOOL | STRING | POLY 
-type typ_f = Typ of typ | VOID
 type bind = typ * string
 
 type primary_c = 
 	Intlit of int
 	| Floatlit of float
 
-type extravalue = 
+type extra_asn_value = 
 	Id of string 
-	Polyextr of string * int
-	Arrextr of string * int 
+	| Polyextr of string * int
+	| Arrextr of string * int 
 
 type primary_ap = 
 	Prim_c of primary_c
@@ -26,10 +25,6 @@ type primary =
 	| Poly of primary_ap list 
 	| Boolit of bool 
 	| Strlit of string 
-
-type lvalue = 
-	Idasn of string
-	| Polyasn of string * int 
 
 type expr = 
 	Primary of primary
@@ -49,6 +44,10 @@ type stmt =
 	| Foreach of expr list * stmt list 
 	| While of expr * stmt list
 
+type formaldecl = 
+	Prim_f_decl of typ * string 
+	Arr_f_decl of typ * string * int 
+
 type variabledecl = 
 	Primdecl of typ * string
 	Primdecl_i of typ * string * primary
@@ -57,9 +56,9 @@ type variabledecl =
 
 type functiondecl = 
 	{ 
-	ftyp: typ_f;
+	ftyp: typ;
 	fname: string;
-	formals: bind list;
+	formals: formaldecl list;
 	locals: variabledecl list;
 	body: stmt list;
 	}
