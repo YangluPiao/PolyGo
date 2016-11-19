@@ -11,4 +11,7 @@ locals: variabledecl list;
 ```
 <br>
 21:00PM 11/16<br>
-1. Uploaded `newast.ml` and `newparser.mly`, with reduce/shift conflicts eliminated.
+1. Uploaded `newast.ml` and `newparser.mly`, with reduce/shift conflicts eliminated.<br>
+<br>
+11:52AM 11/19<br>
+1. Uploaded working `ast.mli` and `parser.mly`.<br>
