@@ -5,7 +5,7 @@
 %token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
 %token RETURN IF ELSE FOR FOREACH IN WHILE 
-%token INT FLOAT BOOL COMPLEX POLY STRING
+%token INT FLOAT BOOL COMPLEX POLY STRING VOID
 
 %token <int> INTLIT
 %token <float> FLOATLIT
@@ -24,7 +24,7 @@
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE MODULUS
-%left PLUSONE MINUSONE
+%right PLUSONE MINUSONE
 %right NOT NEG
 
 %start program
@@ -45,7 +45,7 @@ decls:
 
 fdecl:/*??? no void type for fdecl */
    typ ID LPAREN formal_list_opt RPAREN LBRACE vdecl_list_opt stmt_list_rev RBRACE
-     {{ typ = $1;
+     {{ ftyp = $1;
 	 fname = $2;
 	 formals = $4;
 	 locals = List.rev $7;
@@ -56,15 +56,16 @@ typ: /* primary type */
 	| BOOL { Bool }
 	| STRING { String }
 	| POLY { Poly }
+	| VOID { Void }
 
 typ_a: /* for array type */
 	INT { Int }
 	| FLOAT { Float }
-	| COMPLEX { Comp }
+	| COMPLEX { Complex }
 
 formal:
   	typ ID 		 							{ Prim_f_decl( $1, $2 ) }
-  	| typ_a LBRACKET INTLIT RBRACKET ID			{ Arr_f_decl( $1, $5, $3 ) }
+  	| typ_a LBRACKET RBRACKET ID			{ Arr_f_decl( $1, $4) }
 
 formal_list:
 	formal                  { [ $1 ] }
@@ -83,10 +84,9 @@ vdecl:
 	| typ ID ASSIGN primary SEMI                   { Primdecl_i($1, $2, $4) }
 	| typ_a LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
 	| typ_a LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
-/* */
 
 stmt_list_rev:
-	stmt { $1 }
+	  stmt { [$1] }
 	| stmt_list_rev stmt { $2 :: $1 }
 
 stmt:
@@ -96,11 +96,11 @@ stmt:
 	| IF LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE %prec NOELSE { If( $3, List.rev $6, [] ) }
 	| IF LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE ELSE LBRACE stmt_list_rev RBRACE { If( $3, List.rev $6, $10 ) }
 	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN LBRACE stmt_list_rev RBRACE { For($3, $5, $7, List.rev $10 ) }
-	| FOREACH ID IN expr_list LBRACE stmt_list_rev RBRACE { Foreach($4, List.rev $6) }
+	| FOREACH LPAREN ID IN ID RPAREN LBRACE stmt_list_rev RBRACE { Foreach($3, $5, List.rev $8) }
 	| WHILE LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE { While($3, List.rev $6) }
 
 expr:
-	primary						{ Prim( $1 ) }
+	primary						{ Primary( $1 ) }
 	 /* array, the whole array can be void, but any of the element cannot be void */
   	| LBRACKET primary_ap_list_opt RBRACKET { Arrlit( $2 )}
 	| LPAREN expr RPAREN { $2 }
@@ -118,11 +118,12 @@ expr:
 	| expr AND    expr { Binop($1, And,   $3) }
 	| expr OR     expr { Binop($1, Or,    $3) }
 	| expr MODULUS expr { Binop($1, Mod,    $3) }
+	| VB expr VB		{ Mod($2) }
 	/*  one operand */
 	| MINUS expr %prec NEG { Unop(Neg, $2) }
 	| NOT expr         { Unop(Not, $2) }  
 	| PLUSONE	expr	{ Unop( Addone, $2 ) }
-	| MINUSONE expr { Unop( Subsone, $2 ) }
+	| MINUSONE expr { Unop( Subone, $2 ) }
 	/* function call */
 	| ID LPAREN expr_list_opt RPAREN { Call( $1, $3 ) }
 	/* assignment */
@@ -130,9 +131,9 @@ expr:
 
 primary: /* the primary types */
 	primary_ap 			   { Prim_ap( $1 ) }
-	| LBRACE primary_ap_list_opt RBRACE  		{ Poly( $2 ) }
-	| FALSE            { BoolLit( false ) }
-	| TRUE             { BoolLit( true ) }
+	| LBRACE primary_ap_list_opt RBRACE  		{ Polylit( $2 ) }
+	| FALSE            { Boollit( false ) }
+	| TRUE             { Boollit( true ) }
 	| STRINGLIT			{ Strlit( $1 ) }
 
 primary_ap_list_opt:
@@ -151,8 +152,8 @@ primary_ap: /* what can exist in an array or in poly */
 
 extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for poly */
 	ID   	{ Id( $1 )}
-	| ID LLBRACKET INTLIT RRBRACKET 		{ Poly_extr_asn( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
-	| ID LBRACKET INTLIT RBRACKET 	{ Arr_extr_asn( $1, $3 ) }/* for array extraction */ /* assignment of poly, array, int, float, bool, string, complex */
+	| ID LLBRACKET INTLIT RRBRACKET 		{ Polyextr( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
+	| ID LBRACKET INTLIT RBRACKET 	{ Arrextr( $1, $3 ) }/* for array extraction */ /* assignment of poly, array, int, float, bool, string, complex */
 
 primary_c: /* what can exist in a complex */
 	INTLIT						{ Intlit( $1 ) }
