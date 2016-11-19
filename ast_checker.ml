@@ -107,9 +107,5 @@ let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_variabledecl (List.rev vars)) ^ "\n" ^
   String.concat "\n" (List.map string_of_fdecl (List.rev funcs))
 
-let _ =
-  let lexbuf = Lexing.from_channel stdin in
-  let ast = Parser.program Scanner.token lexbuf in
-  print_string (string_of_program ast);;
 
 
