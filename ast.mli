@@ -1,8 +1,7 @@
 type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
 type unop = Neg | Not | Addone | Subone
-type typ_a = Int | Float | Complex
-type typ = Typ_a of typ_a | Bool | String | Poly| Void
+type typ = Int | Float | Complex | Bool | String | Poly| Void
 type bind = typ * string
 
 type primary_c = 
@@ -46,13 +45,13 @@ type stmt =
 
 type formaldecl = 
 	 Prim_f_decl of typ * string 
-	|Arr_f_decl of typ_a * string 
+	|Arr_f_decl of typ * string 
 
 type variabledecl = 
 	 Primdecl of typ * string
 	|Primdecl_i of typ * string * primary
-	|Arrdecl of typ_a * string * int
-	|Arrdecl_i of typ_a * string * int * primary_ap list 
+	|Arrdecl of typ * string * int
+	|Arrdecl_i of typ * string * int * primary_ap list 
 
 type functiondecl = 
 	{ 

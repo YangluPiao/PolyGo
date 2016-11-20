@@ -25,13 +25,10 @@ let string_of_unop = function
   | Addone -> "++"
   | Subone -> "--" 
 
-let string_of_typ_a = function
-    Int -> "int"
+let string_of_typ = function
+	     Int -> "int"
   | Float -> "float"
   | Complex -> "complex"
-
-let string_of_typ = function
-	 Typ_a(a) -> string_of_typ_a a
   | Bool -> "bool"
   | String -> "string"
   | Poly -> "poly"
@@ -87,13 +84,13 @@ let rec string_of_stmt = function
 
 let string_of_formaldecl = function
 	Prim_f_decl(t, s) -> string_of_typ t ^ " " ^ s
-  | Arr_f_decl(t, s) ->  string_of_typ_a t ^ " " ^ s ^ "[]"
+  | Arr_f_decl(t, s) ->  string_of_typ t ^ " " ^ s ^ "[]"
 
 let rec string_of_variabledecl = function
     Primdecl(a,b) -> string_of_typ a ^ " " ^ b ^ ";\n"
   | Primdecl_i (a,b,c) -> string_of_typ a ^ " " ^ b ^ " = " ^ string_of_primary c ^ ";\n"
-  | Arrdecl (a,b,c) -> string_of_typ_a a ^ " [" ^ string_of_int c ^ "]" ^ b ^ ";\n"
-  | Arrdecl_i (a,b,c,d) -> string_of_typ_a a ^ " [" ^ string_of_int c ^ "]" ^ b ^ " = " ^ "[" ^ String.concat "," (List.map string_of_primary_ap d) ^ "]" ^ ";\n"
+  | Arrdecl (a,b,c) -> string_of_typ a ^ " [" ^ string_of_int c ^ "]" ^ b ^ ";\n"
+  | Arrdecl_i (a,b,c,d) -> string_of_typ a ^ " [" ^ string_of_int c ^ "]" ^ b ^ " = " ^ "[" ^ String.concat "," (List.map string_of_primary_ap d) ^ "]" ^ ";\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.ftyp ^ " " ^
@@ -107,9 +104,5 @@ let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_variabledecl (List.rev vars)) ^ "\n" ^
   String.concat "\n" (List.map string_of_fdecl (List.rev funcs))
 
-let _ =
-  let lexbuf = Lexing.from_channel stdin in
-  let ast = Parser.program Scanner.token lexbuf in
-  print_string (string_of_program ast);;
 
 
