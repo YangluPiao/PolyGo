@@ -32,7 +32,7 @@
 
 %%
 
-/* array and poly element can only be: complex, int, float --primary_ap, typ_a 
+/* array and poly element can only be: complex, int, float --primary_ap, typ 
 array is initiated in the beggging, and remain unchanged, that means the value of the element can be extracted,
 	but cannot be assigned or changed. Size must be indicated */
 program:
@@ -52,20 +52,17 @@ fdecl:/*??? no void type for fdecl */
 	 body = List.rev $8  }}
 
 typ: /* primary type */
-	typ_a  { Typ_a( $1 ) }
+		INT { Int }
+	| FLOAT { Float }
+	| COMPLEX { Complex }
 	| BOOL { Bool }
 	| STRING { String }
 	| POLY { Poly }
 	| VOID { Void }
 
-typ_a: /* for array type */
-	INT { Int }
-	| FLOAT { Float }
-	| COMPLEX { Complex }
-
 formal:
   	typ ID 		 							{ Prim_f_decl( $1, $2 ) }
-  	| typ_a LBRACKET RBRACKET ID			{ Arr_f_decl( $1, $4) }
+  	| typ LBRACKET RBRACKET ID			{ Arr_f_decl( $1, $4) }
 
 formal_list:
 	formal                  { [ $1 ] }
@@ -82,8 +79,8 @@ vdecl_list_opt:
 vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
 	| typ ID ASSIGN primary SEMI                   { Primdecl_i($1, $2, $4) }
-	| typ_a LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
-	| typ_a LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
+	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
 
 stmt_list_rev:
 	  stmt { [$1] }

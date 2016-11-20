@@ -15,28 +15,29 @@ let check func =
 		in 
 		let extr e map = match e with
 			Id s -> type_of_identifier s map
-		| Polyextr(_, _) -> Typ_a Int  (***No solution yet***)
-		| Arrextr(_, _) -> Typ_a Int   (***No solution yet***)
-		in 
-		let typ_a t = match t with
-			Int -> Typ_a Int
-		| Float -> Typ_a Float
-		| Complex -> Typ_a Complex
+		| Polyextr(_, _) -> Int  (***No solution yet***)
+		| Arrextr(_, _) -> Int   (***No solution yet***)
 		in 
 		let prim_c e = match e with
-			Intlit _ -> Typ_a Int
-		| Floatlit _ -> Typ_a Float
+			Intlit _ -> Int
+		| Floatlit _ -> Float
 		in
 		let prim_ap e map = match e with
 			Prim_c a -> prim_c a
-		| Comp (_, _) -> Typ_a Complex
+		| Comp (_, _) -> Complex
 		| Extr a -> extr a map
 		in
 		let primary e map = match e with
 			Strlit _ -> String
 		| Boollit _ -> Bool
 		| Polylit _ -> Poly 
-		| Prim_ap s -> prim_ap s map  (***No solution yet***)
+		| Prim_ap s -> prim_ap s map
+		in
+		let check_array_init t id i l map=	(*check the type and size of array initializer*)
+			if List.length l != i
+			then raise (Failure ("array " ^ id ^ ": length of the initializer doesn't match the array size"));
+			List.iter (fun prim -> ignore(check_assign t (prim_ap prim map) (Failure("array " ^ id ^ 
+				": type of the element in initializer " ^ string_of_typ (prim_ap prim map) ^ " doesn't match the array type " ^ string_of_typ t)))) l
 		in
 		let create vdecl = match vdecl with
 			Primdecl(t, id) -> ignore( if string_of_typ t = "void" 
@@ -45,13 +46,14 @@ let check func =
 		| Primdecl_i(t, id, prim) -> ignore( if string_of_typ t = "void" 
 									then raise (Failure ("variable cannot be type void")));
 									let rt = primary prim m in
-				ignore( check_assign t (primary prim m)
-						(Failure ("illegal assignment " ^ string_of_typ t ^
-					     " = " ^ string_of_typ rt ^ " in " ^ 
-					     string_of_variabledecl vdecl)));
-				StringMap.add id t m
-		| Arrdecl (t, id, _) -> StringMap.add id (typ_a t) m (***No solution yet***)
-		| Arrdecl_i (t, id, _, _) -> StringMap.add id (typ_a t) m (***No solution yet***)
+									ignore( check_assign t (primary prim m)
+									(Failure ("illegal assignment " ^ string_of_typ t ^
+								     " = " ^ string_of_typ rt ^ " in " ^ 
+								     string_of_variabledecl vdecl)));
+									StringMap.add id t m
+		| Arrdecl (t, id, _) -> StringMap.add id t m (***No solution yet***)
+		| Arrdecl_i (t, id, i, l) -> ignore(check_array_init t id i l m);
+									StringMap.add id t m (***No solution yet***)
 		in
 		create local_decl
 	in
