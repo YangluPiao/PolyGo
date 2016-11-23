@@ -26,8 +26,11 @@ locals: variabledecl list;
 ```C
 print("Hello world");
 ```
+<br>
 2. Update `Makefile`, in order to run our compiler, use this command in terminal:
 ```Shell
 make clean && make && ./mytest.sh
 ```
+<br>
 3. `test.pg` is just a small demo, you can play with it if you like. But I cannot guarantee our compiler can do something more than print a string. :)
+<br>
