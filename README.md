@@ -22,7 +22,7 @@ locals: variabledecl list;
 2. Cancel `typ_a`, all types are included in `typ`.<br>
 <br>
 20:20 11/22<br>
-1. Add `codegen.ml`, `mytest.sh`, `test.pg`. Currently we can just do something like:<br>
+1. Add `polygo.ml`, `codegen.ml`, `mytest.sh`, `test.pg`. Currently we can just do something like:<br>
 ```C
 print("Hello world");
 ```
