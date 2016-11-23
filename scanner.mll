@@ -46,7 +46,7 @@ rule token = parse
 | "true"   { TRUE }
 | "false"  { FALSE }
 | "float"  { FLOAT }
-| "complex"   { COMPLEX }
+| "comp"   { COMPLEX }
 | "string" { STRING }
 | "poly"   { POLY }
 | ['0'-'9']+ as lxm { INTLIT(int_of_string lxm) }
