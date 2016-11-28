@@ -10,7 +10,6 @@
 %token <int> INTLIT
 %token <float> FLOATLIT
 %token <string> ID
-/* ? */
 %token <string> STRINGLIT
 %token EOF
 
@@ -52,7 +51,7 @@ fdecl:/*??? no void type for fdecl */
 	 body = List.rev $8  }}
 
 typ: /* primary type */
-		INT { Int }
+	INT { Int }
 	| FLOAT { Float }
 	| COMPLEX { Complex }
 	| BOOL { Bool }
@@ -78,9 +77,9 @@ vdecl_list_opt:
 
 vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
-	| typ ID ASSIGN primary SEMI                   { Primdecl_i($1, $2, $4) }
+	| typ ID ASSIGN expr SEMI                   { Primdecl_i($1, $2, $4) }
 	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
-	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET primary_ap_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
 
 stmt_list_rev:
 	  stmt { [$1] }
@@ -97,9 +96,16 @@ stmt:
 	| WHILE LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE { While($3, List.rev $6) }
 
 expr:
-	primary						{ Primary( $1 ) }
+	INTLIT						{ Intlit( $1 ) }
+	| FLOATLIT     				{ Floatlit( $1 ) }
+	| LT expr COMMA expr GT		{ Complexlit( $2, $4 ) }
+	| LBRACE expr_list_opt RBRACE  		{ Polylit( $2 ) }
+	| FALSE            { Boollit( false ) }
+	| TRUE             { Boollit( true ) }
+	| STRINGLIT			{ Strlit( $1 ) }
+	| extr_asn_value		   { Extr( $1 ) }
 	 /* array, the whole array can be void, but any of the element cannot be void */
-  	| LBRACKET primary_ap_list_opt RBRACKET { Arrlit( $2 )}
+  	| LBRACKET expr_list_opt RBRACKET { Arrlit( $2 )}
 	| LPAREN expr RPAREN { $2 }
 	/* Binop */
 	| expr PLUS   expr { Binop($1, Add,   $3) }
@@ -126,35 +132,10 @@ expr:
 	/* assignment */
 	| extr_asn_value ASSIGN expr { Asn( $1, $3 ) }
 
-primary: /* the primary types */
-	primary_ap 			   { Prim_ap( $1 ) }
-	| LBRACE primary_ap_list_opt RBRACE  		{ Polylit( $2 ) }
-	| FALSE            { Boollit( false ) }
-	| TRUE             { Boollit( true ) }
-	| STRINGLIT			{ Strlit( $1 ) }
-
-primary_ap_list_opt:
-			{ [] }
-	| primary_ap_list { List.rev $1 }
-
-primary_ap_list:
-	primary_ap  { [ $1 ] }
-	| primary_ap_list COMMA primary_ap { $3 :: $1 }
-
-primary_ap: /* what can exist in an array or in poly */
-	primary_c  	{ Prim_c( $1 ) }
-	  /* complex, real and im can all be void, then take it as 0 */
-	| LT primary_c COMMA primary_c GT			{ Comp( $2, $4 ) }
-	| extr_asn_value		   { Extr( $1 ) }
-
 extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for poly */
 	ID   	{ Id( $1 )}
 	| ID LLBRACKET INTLIT RRBRACKET 		{ Polyextr( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
 	| ID LBRACKET INTLIT RBRACKET 	{ Arrextr( $1, $3 ) }/* for array extraction */ /* assignment of poly, array, int, float, bool, string, complex */
-
-primary_c: /* what can exist in a complex */
-	INTLIT						{ Intlit( $1 ) }
-	| FLOATLIT     				{ Floatlit($1) }
 
 expr_list_opt:
 		         { [] }
@@ -163,7 +144,3 @@ expr_list_opt:
 expr_list:
 	expr 		 { [$1] }
 	| expr_list COMMA expr { $3 :: $1 }
-
-expr_opt:
-	             { Noexpr }
-	| expr 		 { $1 }
