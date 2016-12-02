@@ -2,7 +2,7 @@
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token LBRACKET RBRACKET LLBRACKET RRBRACKET
-%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN
+%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS LVB RVB ASSIGN
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
 %token RETURN IF ELSE FOR FOREACH IN WHILE 
 %token INT FLOAT BOOL COMPLEX POLY STRING VOID
@@ -121,7 +121,7 @@ expr:
 	| expr AND    expr { Binop($1, And,   $3) }
 	| expr OR     expr { Binop($1, Or,    $3) }
 	| expr MODULUS expr { Binop($1, Mod,    $3) }
-	| VB expr VB		{ Mod($2) }
+	| LVB expr RVB 		{ Mod($2) }
 	/*  one operand */
 	| MINUS expr %prec NEG { Unop(Neg, $2) }
 	| NOT expr         { Unop(Not, $2) }  
@@ -140,6 +140,9 @@ extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for pol
 expr_list_opt:
 		         { [] }
 	| expr_list { List.rev $1 }
+expr_opt:
+				 { [] }
+	| expr { [$1] }
 
 expr_list:
 	expr 		 { [$1] }
