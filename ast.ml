@@ -4,29 +4,20 @@ type unop = Neg | Not | Addone | Subone
 type typ = Int | Float | Complex | Bool | String | Poly| Void
 type bind = typ * string
 
-type primary_c = 
-  Intlit of int
-  | Floatlit of float
-
 type extra_asn_value = 
   Id of string 
   | Polyextr of string * int
   | Arrextr of string * int
 
-type primary_ap = 
-  Prim_c of primary_c
-  | Comp of primary_c * primary_c
+type expr = 
+    Intlit of int
+  | Floatlit of float
+  | Complexlit of expr * expr
   | Extr of extra_asn_value
-
-type primary = 
-  Prim_ap of primary_ap
-  | Polylit of primary_ap list 
+  | Polylit of expr list 
   | Boollit of bool 
   | Strlit of string 
-
-type expr = 
-  Primary of primary
-  | Arrlit of primary_ap list
+  | Arrlit of expr list
   | Binop of expr * op * expr
   | Unop of unop * expr
   | Asn of extra_asn_value * expr
@@ -49,9 +40,9 @@ type formaldecl =
 
 type variabledecl = 
    Primdecl of typ * string
-  |Primdecl_i of typ * string * primary
+  |Primdecl_i of typ * string * expr
   |Arrdecl of typ * string * int
-  |Arrdecl_i of typ * string * int * primary_ap list 
+  |Arrdecl_i of typ * string * int * expr list 
 
 type functiondecl = 
   { 
@@ -63,7 +54,7 @@ type functiondecl =
   }
 
 type program = variabledecl list * functiondecl list 
-(*
+
 let string_of_op = function
     Add -> "+"
   | Sub -> "-"
@@ -86,7 +77,7 @@ let string_of_unop = function
   | Subone -> "--" 
 
 let string_of_typ = function
-       Int -> "int"
+    Int -> "int"
   | Float -> "float"
   | Complex -> "complex"
   | Bool -> "bool"
@@ -94,34 +85,25 @@ let string_of_typ = function
   | Poly -> "poly"
   | Void -> "void"
 
-let string_of_primary_c = function
-    Intlit(l) -> string_of_int l
-  | Floatlit(f) -> string_of_float f
-
 let string_of_extra_asn_value = function
     Id(s) -> s
   | Polyextr(s, i) -> s ^ "[[" ^ string_of_int i ^ "]]"
   | Arrextr(s, i) -> s ^ "[" ^ string_of_int i ^ "]"
 
-let string_of_primary_ap = function
-    Prim_c(c) -> string_of_primary_c c
-  | Comp(a,b) ->  "<" ^ string_of_primary_c a ^ "," ^ string_of_primary_c b  ^ ">"
-  | Extr(e) ->  string_of_extra_asn_value e
-
-let string_of_primary = function
+let rec string_of_expr = function
     Boollit(true) -> "true"
   | Boollit(false) -> "false"
-  | Polylit(p) -> "{" ^ String.concat "," (List.map string_of_primary_ap p) ^ "}"
+  | Polylit(p) -> "{" ^ String.concat "," (List.map string_of_expr p) ^ "}"
   | Strlit(p) -> p
-  | Prim_ap(p_ap)-> string_of_primary_ap p_ap
-
-let rec string_of_expr = function
-    Primary(prim) -> string_of_primary prim
-  | Arrlit (arr) -> "[" ^ String.concat "," (List.map string_of_primary_ap arr) ^ "]"
+  | Intlit(l) -> string_of_int l
+  | Floatlit(f) -> string_of_float f
+  | Complexlit(a,b) ->  "<" ^ string_of_expr a ^ "," ^ string_of_expr b  ^ ">"
+  | Extr(e) ->  string_of_extra_asn_value e
+  | Arrlit (arr) -> "[" ^ String.concat "," (List.map string_of_expr arr) ^ "]"
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_unop o ^ string_of_expr e
-  | Mod(e) -> "|" ^ string_of_expr e ^ "|"
+  | Mod(e) -> "|<" ^ string_of_expr e ^ ">|"
   | Asn(v, e) -> string_of_extra_asn_value v ^ " = " ^ string_of_expr e
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
@@ -148,9 +130,9 @@ let string_of_formaldecl = function
 
 let rec string_of_variabledecl = function
     Primdecl(a,b) -> string_of_typ a ^ " " ^ b ^ ";\n"
-  | Primdecl_i (a,b,c) -> string_of_typ a ^ " " ^ b ^ " = " ^ string_of_primary c ^ ";\n"
+  | Primdecl_i (a,b,c) -> string_of_typ a ^ " " ^ b ^ " = " ^ string_of_expr ^ ";\n"
   | Arrdecl (a,b,c) -> string_of_typ a ^ " [" ^ string_of_int c ^ "]" ^ b ^ ";\n"
-  | Arrdecl_i (a,b,c,d) -> string_of_typ a ^ " [" ^ string_of_int c ^ "]" ^ b ^ " = " ^ "[" ^ String.concat "," (List.map string_of_primary_ap d) ^ "]" ^ ";\n"
+  | Arrdecl_i (a,b,c,d) -> string_of_typ a ^ " [" ^ string_of_int c ^ "]" ^ b ^ " = " ^ "[" ^ String.concat "," (List.map string_of_expr d) ^ "]" ^ ";\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.ftyp ^ " " ^
@@ -162,4 +144,4 @@ let string_of_fdecl fdecl =
 
 let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_variabledecl (List.rev vars)) ^ "\n" ^
-  String.concat "\n" (List.map string_of_fdecl (List.rev funcs)) *)
+  String.concat "\n" (List.map string_of_fdecl (List.rev funcs)) 

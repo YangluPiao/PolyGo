@@ -121,7 +121,7 @@ expr:
 	| expr AND    expr { Binop($1, And,   $3) }
 	| expr OR     expr { Binop($1, Or,    $3) }
 	| expr MODULUS expr { Binop($1, Mod,    $3) }
-	| LVB expr COMMA expr RVB		{ Mod($2) }
+	| LVB expr RVB 		{ Mod($2) }
 	/*  one operand */
 	| MINUS expr %prec NEG { Unop(Neg, $2) }
 	| NOT expr         { Unop(Not, $2) }  
