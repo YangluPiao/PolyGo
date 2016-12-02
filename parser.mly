@@ -2,7 +2,7 @@
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token LBRACKET RBRACKET LLBRACKET RRBRACKET
-%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS LVB RVB ASSIGN
+%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
 %token RETURN IF ELSE FOR FOREACH IN WHILE 
 %token INT FLOAT BOOL COMPLEX POLY STRING VOID
@@ -16,6 +16,7 @@
 %nonassoc NOELSE
 %nonassoc ELSE
 %left COMMA
+%nonassoc VB
 %right ASSIGN
 %left OR
 %left AND
@@ -25,6 +26,7 @@
 %left TIMES DIVIDE MODULUS
 %right PLUSONE MINUSONE
 %right NOT NEG
+%right COM 
 
 %start program
 %type <Ast.program> program
@@ -98,7 +100,7 @@ stmt:
 expr:
 	INTLIT						{ Intlit( $1 ) }
 	| FLOATLIT     				{ Floatlit( $1 ) }
-	| LT expr COMMA expr GT		{ Complexlit( $2, $4 ) }
+	| LT expr COMMA expr GT	%prec COM	{ Complexlit( $2, $4 ) }
 	| LBRACE expr_list_opt RBRACE  		{ Polylit( $2 ) }
 	| FALSE            { Boollit( false ) }
 	| TRUE             { Boollit( true ) }
@@ -121,7 +123,7 @@ expr:
 	| expr AND    expr { Binop($1, And,   $3) }
 	| expr OR     expr { Binop($1, Or,    $3) }
 	| expr MODULUS expr { Binop($1, Mod,    $3) }
-	| LVB expr RVB 		{ Mod($2) }
+	| VB expr VB 		{ Mod($2) }
 	/*  one operand */
 	| MINUS expr %prec NEG { Unop(Neg, $2) }
 	| NOT expr         { Unop(Not, $2) }  

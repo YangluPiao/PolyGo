@@ -20,8 +20,7 @@ rule token = parse
 | '%'	   { MODULUS }
 | "++"	   { PLUSONE }
 | "--"	   { MINUSONE }
-| "|<"	   { LVB }
-| ">|"	   { RVB }
+| "|"	   { VB }
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }

@@ -26,8 +26,7 @@ type expr =
   | Noexpr 
 
 type stmt =
-  Block of stmt list
-  | Expr of expr
+    Expr of expr
   | Return of expr
   | If of expr * stmt list * stmt list
   | For of expr * expr * expr * stmt list
