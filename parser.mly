@@ -4,7 +4,7 @@
 %token LBRACKET RBRACKET LLBRACKET RRBRACKET
 %token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
-%token RETURN IF ELSE FOR FOREACH IN WHILE 
+%token RETURN IF ELSE FOR FOREACH IN WHILE PASS
 %token INT FLOAT BOOL COMPLEX POLY STRING VOID
 
 %token <int> INTLIT
@@ -15,6 +15,7 @@
 
 %nonassoc NOELSE
 %nonassoc ELSE
+%nonassoc PASS
 %left COMMA
 %nonassoc VB
 %right ASSIGN
@@ -26,7 +27,6 @@
 %left TIMES DIVIDE MODULUS
 %right PLUSONE MINUSONE
 %right NOT NEG
-%right COM 
 
 %start program
 %type <Ast.program> program
@@ -45,7 +45,7 @@ decls:
 	| decls fdecl { fst $1, ($2 :: snd $1) }
 
 fdecl:/*??? no void type for fdecl */
-   typ ID LPAREN formal_list_opt RPAREN LBRACE vdecl_list_opt stmt_list_rev RBRACE
+   typ ID LPAREN formal_list_opt RPAREN LBRACE vdecl_list_opt stmt_list_opt RBRACE
      {{ ftyp = $1;
 	 fname = $2;
 	 formals = $4;
@@ -53,7 +53,7 @@ fdecl:/*??? no void type for fdecl */
 	 body = List.rev $8  }}
 
 typ: /* primary type */
-	INT { Int }
+	  INT { Int }
 	| FLOAT { Float }
 	| COMPLEX { Complex }
 	| BOOL { Bool }
@@ -62,7 +62,7 @@ typ: /* primary type */
 	| VOID { Void }
 
 formal:
-  	typ ID 		 							{ Prim_f_decl( $1, $2 ) }
+  	  typ ID 		 				    { Prim_f_decl( $1, $2 ) }
   	| typ LBRACKET RBRACKET ID			{ Arr_f_decl( $1, $4) }
 
 formal_list:
@@ -71,36 +71,42 @@ formal_list:
 
 formal_list_opt:
     /* nothing */ { [] }
-	| formal_list   { List.rev $1 }
+	| formal_list   {  $1 }
 
 vdecl_list_opt:
-			{ [] }
+	/* nothing */	{ [] }
 	| vdecl_list_opt vdecl 			{$2 :: $1}
 
 vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
 	| typ ID ASSIGN expr SEMI                   { Primdecl_i($1, $2, $4) }
 	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
-	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, $8) }
 
-stmt_list_rev:
-	  stmt { [$1] }
-	| stmt_list_rev stmt { $2 :: $1 }
+stmt_list_opt:
+	PASS SEMI       {[]}
+  | stmt_list  { $1 }
+
+  stmt_list:
+    stmt  { [$1] }
+  | stmt_list stmt { $2 :: $1 }
 
 stmt:
 	expr SEMI { Expr $1 }
 	| RETURN SEMI { Return Noexpr }
 	| RETURN expr SEMI { Return $2 }
-	| IF LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE %prec NOELSE { If( $3, List.rev $6, [] ) }
-	| IF LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE ELSE LBRACE stmt_list_rev RBRACE { If( $3, List.rev $6, $10 ) }
-	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN LBRACE stmt_list_rev RBRACE { For($3, $5, $7, List.rev $10 ) }
-	| FOREACH LPAREN ID IN ID RPAREN LBRACE stmt_list_rev RBRACE { Foreach($3, $5, List.rev $8) }
-	| WHILE LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE { While($3, List.rev $6) }
+	| LBRACE stmt_list_opt RBRACE { Block($2) }
+	| IF LPAREN expr RPAREN stmt %prec NOELSE { If( $3, $5, Block([]) ) }
+	| IF LPAREN expr RPAREN stmt ELSE stmt { If( $3,  $5, $7 ) }
+	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9 ) }
+	| FOREACH LPAREN ID IN ID RPAREN stmt { Foreach($3, $5, $7) }
+	| WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+
 
 expr:
 	INTLIT						{ Intlit( $1 ) }
 	| FLOATLIT     				{ Floatlit( $1 ) }
-	| LT expr COMMA expr GT	%prec COM	{ Complexlit( $2, $4 ) }
+	| LT expr COMMA expr GT	   { Complexlit( $2, $4 ) }
 	| LBRACE expr_list_opt RBRACE  		{ Polylit( $2 ) }
 	| FALSE            { Boollit( false ) }
 	| TRUE             { Boollit( true ) }
@@ -141,10 +147,10 @@ extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for pol
 
 expr_list_opt:
 		         { [] }
-	| expr_list { List.rev $1 }
+	| expr_list {  $1 }
 expr_opt:
-				 { [] }
-	| expr { [$1] }
+				 { Noexpr }
+	| expr { $1 }
 
 expr_list:
 	expr 		 { [$1] }

@@ -49,6 +49,7 @@ rule token = parse
 | "comp"   { COMPLEX }
 | "string" { STRING }
 | "poly"   { POLY }
+| "pass"   { PASS }
 | ['0'-'9']+ as lxm { INTLIT(int_of_string lxm) }
 | ('.'['0'-'9']+Exp? | ['0'-'9']+('.'['0'-'9']*Exp? | Exp ) ) as lxm { FLOATLIT(float_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }

@@ -1,0 +1,5 @@
+void main(){
+	int i = 10086;
+	int b = 10010;
+	print(i+b);
+}

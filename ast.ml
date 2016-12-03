@@ -26,12 +26,13 @@ type expr =
   | Noexpr 
 
 type stmt =
-    Expr of expr
+    Block of stmt list
+  | Expr of expr
   | Return of expr
-  | If of expr * stmt list * stmt list
-  | For of expr * expr * expr * stmt list
-  | Foreach of string * string * stmt list 
-  | While of expr * stmt list
+  | If of expr * stmt* stmt
+  | For of expr * expr * expr * stmt 
+  | Foreach of string * string * stmt 
+  | While of expr * stmt 
 
 type formaldecl = 
    Prim_f_decl of typ * string 
@@ -53,7 +54,7 @@ type functiondecl =
   }
 
 type program = variabledecl list * functiondecl list 
-
+(*
 let string_of_op = function
     Add -> "+"
   | Sub -> "-"
@@ -143,4 +144,4 @@ let string_of_fdecl fdecl =
 
 let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_variabledecl (List.rev vars)) ^ "\n" ^
-  String.concat "\n" (List.map string_of_fdecl (List.rev funcs)) 
+  String.concat "\n" (List.map string_of_fdecl (List.rev funcs)) *)

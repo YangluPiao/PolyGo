@@ -1,0 +1,15 @@
+void main()
+{
+	int i;
+	float j;
+	string s;
+	bool b;
+	i = 10086;
+	j = 1.2345;
+	s = "Hey";
+	b = true;
+	print(i);
+	print_f(j);
+	print_s(s);
+	print_b(b);
+}

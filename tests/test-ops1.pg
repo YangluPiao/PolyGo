@@ -1,0 +1,23 @@
+int main(){
+	int a;
+	int b;
+	int sum;
+	int sub;
+	int mult;
+	int div;
+	bool eq;
+	a = 12;
+	b = 6;
+	sum = a+b;
+	sub = a-b;
+	mult = a*b;
+	div = a/b;
+	eq = (a==b);
+	print(sum);
+	print(sub);	
+	print(mult);
+	print(div);
+	print(eq);
+	
+	return 0;
+}
