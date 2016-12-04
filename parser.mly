@@ -95,7 +95,7 @@ stmt:
 	expr SEMI { Expr $1 }
 	| RETURN SEMI { Return Noexpr }
 	| RETURN expr SEMI { Return $2 }
-	| LBRACE stmt_list_opt RBRACE { Block($2) }
+	| LBRACE stmt_list_opt RBRACE { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If( $3, $5, Block([]) ) }
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If( $3,  $5, $7 ) }
 	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9 ) }
@@ -147,7 +147,7 @@ extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for pol
 
 expr_list_opt:
 		         { [] }
-	| expr_list {  $1 }
+	| expr_list {  List.rev $1 }
 expr_opt:
 				 { Noexpr }
 	| expr { $1 }

@@ -147,10 +147,19 @@ let translate (globals, functiondecl) =
     | A.Geq     -> L.build_icmp L.Icmp.Sge
     ) e1' e2' "tmp" builder
     | A.Unop(op, e) ->
-    let e' = expr builder e in
-    (match op with
-      A.Neg     -> L.build_neg
-          | A.Not     -> L.build_not) e' "tmp" builder
+    (match e with A.Extr ee -> (match ee with A.Id s -> let e' = expr builder e in 
+                                (match op with A.Neg     -> L.build_neg e' "tmp" builder; 
+                                              | A.Not     -> L.build_not e' "tmp" builder; 
+                                              | A.Addone  -> 
+                                              ignore(L.build_store (L.build_add e' (L.const_int i32_t 1)"tmp" builder) (lookup s) builder);L.build_add e' (L.const_int i32_t 1) "tmp" builder
+                                              | A.Subone  -> 
+                                              ignore(L.build_store (L.build_sub e' (L.const_int i32_t 1)"tmp" builder) (lookup s) builder);L.build_sub e' (L.const_int i32_t 1) "tmp" builder
+                                ))
+              | _ ->let e' = expr builder e in (match op with  A.Neg     -> L.build_neg e' "tmp" builder
+                                        | A.Not     -> L.build_not e' "tmp" builder
+                                        | A.Addone  -> L.build_add e' (L.const_int i32_t 1) "tmp" builder
+                                        | A.Subone  -> L.build_sub e' (L.const_int i32_t 1) "tmp" builder
+              )) 
     | A.Call ("print", [e]) | A.Call ("print_b", [e]) ->
     L.build_call printf_func [| int_format_str ; (expr builder e) |]
       "printf" builder
@@ -222,8 +231,8 @@ let translate (globals, functiondecl) =
     let merge_bb = L.append_block context "merge" the_function in
     ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
     L.builder_at_end context merge_bb
-
-  
+    | A.For (e1, e2, e3, body) -> stmt builder
+      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
     in
 
     (* Build the code for each statement in the function *)
