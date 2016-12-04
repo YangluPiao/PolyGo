@@ -34,3 +34,7 @@ make clean && make && ./mytest.sh
 <br>
 3. `test.pg` is just a small demo, you can play with it if you like. But I cannot guarantee our compiler can do something more than print a string. :)
 <br>
+20:37 12/03<br>
+1. Update parser, scanner and ast.<br>
+2. Add some code to codegen. Something about declaration, statement and unary operators.
+<br>
