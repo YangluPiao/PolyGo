@@ -1,0 +1,8 @@
+int main(){
+	comp p;
+	int i;
+	p=<1.0,2.0>;
+	i = 1;
+	print(i);
+	return 0;
+}

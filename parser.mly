@@ -58,8 +58,8 @@ typ: /* primary type */
 	| COMPLEX { Complex }
 	| BOOL { Bool }
 	| STRING { String }
-	| POLY { Poly }
 	| VOID { Void }
+	| POLY { Poly }
 
 formal:
   	  typ ID 		 				    { Prim_f_decl( $1, $2 ) }
@@ -95,22 +95,24 @@ stmt:
 	expr SEMI { Expr $1 }
 	| RETURN SEMI { Return Noexpr }
 	| RETURN expr SEMI { Return $2 }
-	| LBRACE stmt_list_opt RBRACE { Block(List.rev $2) }
+	| LBRACE stmt_list_opt RBRACE { Block($2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If( $3, $5, Block([]) ) }
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If( $3,  $5, $7 ) }
 	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9 ) }
 	| FOREACH LPAREN ID IN ID RPAREN stmt { Foreach($3, $5, $7) }
 	| WHILE LPAREN expr RPAREN stmt { While($3, $5) }
 
-
-expr:
-	INTLIT						{ Intlit( $1 ) }
+primary:
+	  INTLIT				    { Intlit( $1 ) }
 	| FLOATLIT     				{ Floatlit( $1 ) }
-	| LT expr COMMA expr GT	   { Complexlit( $2, $4 ) }
-	| LBRACE expr_list_opt RBRACE  		{ Polylit( $2 ) }
+	| STRINGLIT					{ Strlit( $1 ) }
 	| FALSE            { Boollit( false ) }
 	| TRUE             { Boollit( true ) }
-	| STRINGLIT			{ Strlit( $1 ) }
+
+expr:
+	  primary 				   {Primary($1)}
+	| LT expr COMMA expr GT	   { Complexlit( $2, $4 ) }
+	| LBRACE expr_list RBRACE  		{ Polylit( List.rev $2 ) }
 	| extr_asn_value		   { Extr( $1 ) }
 	 /* array, the whole array can be void, but any of the element cannot be void */
   	| LBRACKET expr_list_opt RBRACKET { Arrlit( $2 )}

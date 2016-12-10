@@ -40,3 +40,7 @@ make clean && make && ./mytest.sh
 2. Add some code to codegen. About declaration, statement and unary operators.<br>
 3. Add test suite and script file `testall.sh`.<br>
 <br>
+<br>
+0:43 12/10<br>
+1. Update `codegen.ml`, now we can handle complex and poly.<br>
+<br>
