@@ -4,7 +4,7 @@
 %token LBRACKET RBRACKET LLBRACKET RRBRACKET
 %token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
-%token RETURN IF ELSE FOR FOREACH IN WHILE PASS
+%token RETURN IF ELSE FOR FOREACH IN WHILE PASS BREAK
 %token INT FLOAT BOOL COMPLEX POLY STRING VOID
 
 %token <int> INTLIT
@@ -81,7 +81,7 @@ vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
 	| typ ID ASSIGN expr SEMI                   { Primdecl_i($1, $2, $4) }
 	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
-	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, $8) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list RBRACKET SEMI { Arrdecl_i($1, $5, $3, $8) }
 
 stmt_list_opt:
 	PASS SEMI       {[]}
@@ -95,12 +95,13 @@ stmt:
 	expr SEMI { Expr $1 }
 	| RETURN SEMI { Return Noexpr }
 	| RETURN expr SEMI { Return $2 }
-	| LBRACE stmt_list_opt RBRACE { Block($2) }
+	| LBRACE stmt_list_opt RBRACE { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If( $3, $5, Block([]) ) }
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If( $3,  $5, $7 ) }
 	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9 ) }
 	| FOREACH LPAREN ID IN ID RPAREN stmt { Foreach($3, $5, $7) }
 	| WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+	| BREAK SEMI             { Break }
 
 primary:
 	  INTLIT				    { Intlit( $1 ) }
@@ -112,10 +113,10 @@ primary:
 expr:
 	  primary 				   {Primary($1)}
 	| LT expr COMMA expr GT	   { Complexlit( $2, $4 ) }
-	| LBRACE expr_list RBRACE  		{ Polylit( List.rev $2 ) }
+	| LBRACE expr_list_opt RBRACE  		{ Polylit($2 ) }
 	| extr_asn_value		   { Extr( $1 ) }
 	 /* array, the whole array can be void, but any of the element cannot be void */
-  	| LBRACKET expr_list_opt RBRACKET { Arrlit( $2 )}
+  	| LBRACKET expr_list_opt RBRACKET { Arrlit($2 )}
 	| LPAREN expr RPAREN { $2 }
 	/* Binop */
 	| expr PLUS   expr { Binop($1, Add,   $3) }
@@ -144,8 +145,11 @@ expr:
 
 extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for poly */
 	ID   	{ Id( $1 )}
-	| ID LLBRACKET INTLIT RRBRACKET 		{ Polyextr( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
-	| ID LBRACKET INTLIT RBRACKET 	{ Arrextr( $1, $3 ) }/* for array extraction */ /* assignment of poly, array, int, float, bool, string, complex */
+	| ID LLBRACKET INTLIT RRBRACKET 		{ Polyextr( $1, $3 ) }
+	| ID LBRACKET INTLIT RBRACKET 	{ Arrextr( $1, $3 ) }
+	| ID LLBRACKET ID RRBRACKET 		{ Poly_id( $1, $3 ) }
+	| ID LBRACKET ID RBRACKET 	{ Array_id( $1, $3 ) }	
+	  
 
 expr_list_opt:
 		         { [] }

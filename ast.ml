@@ -1,29 +1,37 @@
 type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
 type unop = Neg | Not | Addone | Subone
-type typ = Int | Float | Complex | Bool | String | Poly| Void
+type typ = Int | Float | Complex | Bool | String | Void | Poly
 type bind = typ * string
 
 type extra_asn_value = 
   Id of string 
   | Polyextr of string * int
   | Arrextr of string * int
+  | Poly_id of string * string
+  | Array_id of string * string
 
-type expr = 
+type primary = 
     Intlit of int
   | Floatlit of float
+  | Boollit of bool 
+  | Strlit of string
+
+type expr = 
+    Primary of primary 
   | Complexlit of expr * expr
   | Extr of extra_asn_value
   | Polylit of expr list 
-  | Boollit of bool 
-  | Strlit of string 
-  | Arrlit of expr list
+  | Arrlit of expr list 
   | Binop of expr * op * expr
   | Unop of unop * expr
   | Asn of extra_asn_value * expr
+  | Asn_extr of expr * expr
   | Call of string * expr list
   | Mod of expr
   | Noexpr 
+
+
 
 type stmt =
     Block of stmt list
@@ -33,6 +41,7 @@ type stmt =
   | For of expr * expr * expr * stmt 
   | Foreach of string * string * stmt 
   | While of expr * stmt 
+  | Break
 
 type formaldecl = 
    Prim_f_decl of typ * string 
