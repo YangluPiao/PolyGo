@@ -26,6 +26,7 @@ rule token = parse
 | '*'      { TIMES }
 | '/'      { DIVIDE }
 | '='      { ASSIGN }
+| "sqrt"   { SQRT }
 | "=="     { EQ }
 | "!="     { NEQ }
 | "<="     { LEQ }

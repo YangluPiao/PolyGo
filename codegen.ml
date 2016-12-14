@@ -94,9 +94,11 @@ let translate (globals, functiondecl) =
     let (the_function,_) = StringMap.find fdecl.A.fname function_decls in
     let builder = L.builder_at_end context (L.entry_block the_function) in
     
-    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
-    let float_format_str = L.build_global_stringptr "%f\n" "float" builder in
-    let str_format_str = L.build_global_stringptr "%s\n" "str" builder in
+    let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
+    and float_format_str = L.build_global_stringptr "%f\n" "float" builder
+    and str_format_str = L.build_global_stringptr "%s\n" "str" builder
+    and real_format_str = L.build_global_stringptr "%.3f+" "real" builder 
+    and image_format_str = L.build_global_stringptr "%.3fi\n" "image" builder in
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
@@ -298,7 +300,7 @@ let translate (globals, functiondecl) =
     let float_op =(match op with
       A.Add     -> L.build_fadd
     | A.Sub     -> L.build_fsub
-    | A.Mult    -> L.build_fmul
+    | A.Mult    -> L.build_fmul 
     | A.Div     -> L.build_fdiv
     | A.And     -> L.build_and
     | A.Or      -> L.build_or
@@ -314,27 +316,50 @@ let translate (globals, functiondecl) =
                                   else float_op) in
     match List.length e1' with 1 -> let x = List.hd e1' in 
                                    List.map (fun a -> opp x a "tmp" builder)e2'
-                             | _ ->List.map2 (fun a b ->opp a b "tmp" builder)e1' e2')
-    | A.Unop(op, e) ->
-    (match e with A.Extr ee -> (match ee with A.Id s -> let e' = List.hd (expr builder e) in 
-                                (match op with A.Neg     -> [L.build_neg e' "tmp" builder]; 
+                             | _ ->(let a1 = List.hd e1'
+                                    and a2 = List.hd(List.tl e1')
+                                    and b1 = List.hd e2'
+                                    and b2 = List.hd(List.tl e2') in
+                                    match op with A.Mult -> 
+                                    let first = L.build_fsub (opp a1 b1 "tmp" builder) (opp a2 b2 "tmp" builder)"tmp" builder
+                                    and second = L.build_fadd (opp a1 b2 "tmp" builder) (opp a2 b1 "tmp" builder)"tmp" builder in
+                                    [first;second]
+                                                | A.Div -> 
+                                    let molecular1 = L.build_fadd (L.build_fmul a1 b1 "tmp" builder) (L.build_fmul a2 b2 "tmp" builder)"tmp" builder
+                                    and molecular2 = L.build_fsub (L.build_fmul a2 b1 "tmp" builder) (L.build_fmul a1 b2 "tmp" builder)"tmp" builder
+                                    and denominator = L.build_fadd (L.build_fmul b1 b1 "tmp" builder) (L.build_fmul b2 b2 "tmp" builder) "tmp" builder in
+                                    let first = opp molecular1 denominator "tmp" builder 
+                                    and second = opp molecular2 denominator "tmp" builder in
+                                    [first;second]
+                                                | _ -> List.map2 (fun a b ->opp a b "tmp" builder)e1' e2'
+                                  )
+    )
+    | A.Unop(op, e) ->let e' = List.hd (expr builder e) in  
+                                let var_opt = L.float_of_const e' in
+                                let var = (match var_opt with None -> 1000.0
+                                                          | Some v1 -> v1) in
+                                let typ = get_expr_type [e'] in
+                                let neg = (if typ = i32_t then (L.build_neg e' "tmp" builder )else (L.build_fneg e' "tmp" builder)) in 
+                                let addone = (if typ = i32_t then ((L.build_add e' (L.const_int i32_t 1)"tmp" builder)) else ((L.build_fadd e' (L.const_float d64_t 1.0)"tmp" builder)))in
+                                let subone = (if typ = i32_t then ((L.build_sub e' (L.const_int i32_t 1)"tmp" builder)) else ((L.build_fsub e' (L.const_float d64_t 1.0)"tmp" builder)))in
+                                let sqrt = (if var > 0.0 then [List.hd (expr builder (A.Primary (A.Floatlit (sqrt(var)))));List.hd (expr builder (A.Primary (A.Floatlit (sqrt(-.var)))))] else 
+                                                [List.hd (expr builder (A.Primary (A.Floatlit (sqrt(-.var)))))]) in 
+    (match e with A.Extr ee -> (match ee with A.Id s -> 
+                                (match op with A.Neg     -> [neg ]; 
                                               | A.Not     -> [L.build_not e' "tmp" builder]; 
+                                              | A.Sqrt -> sqrt;          
                                               | A.Addone  -> 
-                                              ignore(L.build_store (L.build_add e' (L.const_int i32_t 1)"tmp" builder) (lookup s) builder);[L.build_add e' (L.const_int i32_t 1) "tmp" builder]
+                                              ignore(L.build_store addone (lookup s) builder);[addone]
                                               | A.Subone  -> 
-                                              ignore(L.build_store (L.build_sub e' (L.const_int i32_t 1)"tmp" builder) (lookup s) builder);[L.build_sub e' (L.const_int i32_t 1) "tmp" builder]
+                                              ignore(L.build_store subone (lookup s) builder);[subone]
                                 )
                               | _ ->raise(Failure("Invalid operator."))
                               )
-              | _ ->let e' = (expr builder e) in let typ = get_expr_type e' in
-                            let int_op = (match op with A.Neg ->L.build_neg) in
-                            let float_op = (match op with A.Neg ->L.build_fneg) in
-                            let opp = (if typ = i32_t then int_op
-                                  else float_op) in
-                          (match op with  A.Neg     -> [opp (List.hd e') "tmp" builder]
-                                        | A.Not     -> [L.build_not (List.hd e') "tmp" builder]
-                                        | A.Addone  -> [L.build_add (List.hd e') (L.const_int i32_t 1) "tmp" builder]
-                                        | A.Subone  -> [L.build_sub (List.hd e') (L.const_int i32_t 1) "tmp" builder]
+              | _ ->(match op with  A.Neg     -> [neg]
+                                | A.Not     -> [L.build_not e' "tmp" builder]
+                                | A.Sqrt -> sqrt          
+                                | A.Addone  -> [addone]
+                                | A.Subone  -> [subone]
               )) 
     | A.Call ("print", [e]) | A.Call ("print_b", [e]) ->
     [L.build_call printf_func [| int_format_str ; (List.hd (expr builder e)) |]
@@ -343,6 +368,11 @@ let translate (globals, functiondecl) =
         [| str_format_str; (List.hd (expr builder e)) |] "printf" builder]
     | A.Call ("print_f", [e]) -> [L.build_call printf_func_f 
         [| float_format_str; (List.hd (expr builder e)) |] "printf" builder]
+    | A.Call ("print_c", [e]) -> [(L.build_call printf_func_f 
+        [| image_format_str; (List.hd (List.tl(expr builder e))) |] "printf" builder);(L.build_call printf_func_f 
+        [| real_format_str; (List.hd (expr builder e)) |] "printf" builder)]
+    |  A.Call ("print_n", [e]) -> [L.build_call printf_func_f
+        [| image_format_str; (List.hd (expr builder e)) |] "printf" builder]
     | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
    let actuals = List.rev (List.map (fun l -> List.hd (expr builder l)) (List.rev act)) in
@@ -443,7 +473,8 @@ let translate (globals, functiondecl) =
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.A.ftyp with
         A.Void -> L.build_ret_void
-      | t -> L.build_ret (L.const_int (ltype_of_typ t) 0));
+      | A.Int -> L.build_ret (L.const_int i32_t 0)
+      | A.Float -> L.build_ret (L.const_float d64_t 0.0));
     ignore(L.builder_at_end context dummy_bb);
     ignore(L.block_terminator dummy_bb);
     ignore(L.delete_block dummy_bb);

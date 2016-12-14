@@ -1,8 +1,8 @@
 %{ open Ast %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
-%token LBRACKET RBRACKET LLBRACKET RRBRACKET
-%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN
+%token LBRACKET RBRACKET LLBRACKET RRBRACKET 
+%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN SQRT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
 %token RETURN IF ELSE FOR FOREACH IN WHILE PASS BREAK
 %token INT FLOAT BOOL COMPLEX POLY STRING VOID
@@ -18,15 +18,16 @@
 %nonassoc PASS
 %left COMMA
 %nonassoc VB
-%right ASSIGN
+%left ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE MODULUS
-%right PLUSONE MINUSONE
+%right PLUSONE MINUSONE SQRT
 %right NOT NEG
+%right SQRT
 
 %start program
 %type <Ast.program> program
@@ -138,6 +139,7 @@ expr:
 	| NOT expr         { Unop(Not, $2) }  
 	| PLUSONE	expr	{ Unop( Addone, $2 ) }
 	| MINUSONE expr { Unop( Subone, $2 ) }
+	| SQRT LPAREN expr RPAREN {Unop(Sqrt,$3)}
 	/* function call */
 	| ID LPAREN expr_list_opt RPAREN { Call( $1, $3 ) }
 	/* assignment */

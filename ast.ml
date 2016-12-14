@@ -1,6 +1,6 @@
 type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
-type unop = Neg | Not | Addone | Subone
+type unop = Neg | Not | Addone | Subone | Sqrt
 type typ = Int | Float | Complex | Bool | String | Void | Poly
 type bind = typ * string
 
