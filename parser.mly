@@ -50,7 +50,7 @@ fdecl:/*??? no void type for fdecl */
 	 fname = $2;
 	 formals = $4;
 	 locals = List.rev $7;
-	 body = List.rev $8  }}
+	 body = $8  }}
 
 typ: /* primary type */
 	INT { Int }
@@ -75,7 +75,7 @@ formal_list:
 
 formal_list_opt:
     /* nothing */ { [] }
-	| formal_list   { List.rev $1 }
+	| formal_list { List.rev $1 }
 
 vdecl_list_opt:
 			{ [] }
@@ -88,9 +88,9 @@ vdecl:
 	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i( $1, $5, $3, List.rev $8) }
 	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACE expr_list_opt RBRACE SEMI { Polydecl_i( $1, $5, $3, List.rev $8) }
 
-stmt_list_opt:
+ stmt_list_opt:
 	PASS SEMI       {[]}
-  | stmt_list  { $1 }
+  | stmt_list  { List.rev $1 }
 
   stmt_list:
     stmt  { [$1] }
@@ -100,7 +100,7 @@ stmt:
 	expr SEMI { Expr $1 }
 	| RETURN SEMI { Return Noexpr }
 	| RETURN expr SEMI { Return $2 }
-	| LBRACE stmt_list_opt RBRACE { Block(List.rev $2) }
+	| LBRACE stmt_list_opt RBRACE { Block($2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If( $3, $5, Block([]) ) }
 	| IF LPAREN expr RPAREN stmt ELSE stmt { If( $3,  $5, $7 ) }
 	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9 ) }
@@ -114,8 +114,8 @@ expr:
 	| ID   	{ Id( $1 ) }
 	| ID LLBRACKET expr RRBRACKET 		{ Extr( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
 	| LT expr COMMA expr GT	%prec COM	{ Complexlit( $2, $4 ) }
-	| LBRACE expr_list_opt RBRACE  		{ Polylit( $2 ) }
-	| LBRACKET expr_list_opt RBRACKET { Arrlit( $2 )}
+	| LBRACE expr_list_opt RBRACE  		{ Polylit( List.rev $2 ) }
+	| LBRACKET expr_list_opt RBRACKET { Arrlit( List.rev $2 )}
 	| FALSE            { Boollit( false ) }
 	| TRUE             { Boollit( true ) }
 	| STRINGLIT			{ Strlit( $1 ) }
@@ -142,19 +142,15 @@ expr:
 	| PLUSONE	expr	{ Unop( Addone, $2 ) }
 	| MINUSONE expr { Unop( Subone, $2 ) }
 	/* function call */
-	| ID LPAREN expr_list_opt RPAREN { Call( $1, $3 ) }
+	| ID LPAREN expr_list_opt RPAREN { Call( $1, List.rev $3 ) }
 	| SQRT LPAREN expr RPAREN {Unop(Sqrt,$3)}
 	/* assignment */
 	| expr ASSIGN expr { Asn( $1, $3 ) }
 
 expr_list_opt:
-		         { [] }
-	| expr_list { List.rev $1 }
+	  expr_opt { [$1] }
+	| expr_list_opt COMMA expr_opt { $3 :: $1 }
 
 expr_opt:
 				 { Noexpr }
 	| expr { $1 }
-
-expr_list:
-	expr 		 { [$1] }
-	| expr_list COMMA expr { $3 :: $1 }
