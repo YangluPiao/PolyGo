@@ -52,6 +52,7 @@ rule token = parse
 | "floatarr" { FLOATARR }
 | "cplxarr" { CPLXARR }
 | "poly"   { POLY }
+| "sqrt"   { SQRT }
 | "break"  { BREAK }
 | "pass"   { PASS }
 | ['0'-'9']+ as lxm { INTLIT(int_of_string lxm) }
