@@ -2,10 +2,11 @@
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token LBRACKET RBRACKET LLBRACKET RRBRACKET
-%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
-%token RETURN IF ELSE FOR FOREACH IN WHILE 
-%token INT FLOAT BOOL COMPLEX POLY STRING VOID
+%token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB SQRT ASSIGN 
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT 
+%token RETURN IF ELSE FOR WHILE BREAK
+%token INT FLOAT BOOL COMPLEX POLY STRING VOID PASS
+%token INTARR FLOATARR CPLXARR BOOLARR
 
 %token <int> INTLIT
 %token <float> FLOATLIT
@@ -15,7 +16,6 @@
 
 %nonassoc NOELSE
 %nonassoc ELSE
-%left COMMA
 %nonassoc VB
 %right ASSIGN
 %left OR
@@ -24,9 +24,9 @@
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE MODULUS
-%right PLUSONE MINUSONE
+%right PLUSONE MINUSONE 
 %right NOT NEG
-%right COM 
+%nonassoc COM
 
 %start program
 %type <Ast.program> program
@@ -45,7 +45,7 @@ decls:
 	| decls fdecl { fst $1, ($2 :: snd $1) }
 
 fdecl:/*??? no void type for fdecl */
-   typ ID LPAREN formal_list_opt RPAREN LBRACE vdecl_list_opt stmt_list_rev RBRACE
+   typ ID LPAREN formal_list_opt RPAREN LBRACE vdecl_list_opt stmt_list_opt RBRACE
      {{ ftyp = $1;
 	 fname = $2;
 	 formals = $4;
@@ -60,6 +60,10 @@ typ: /* primary type */
 	| STRING { String }
 	| POLY { Poly }
 	| VOID { Void }
+	| INTARR { Intarr }
+	| FLOATARR { Floatarr }
+	| CPLXARR { Cplxarr }
+	| BOOLARR { Boolarr }
 
 formal:
   	typ ID 		 							{ Prim_f_decl( $1, $2 ) }
@@ -80,34 +84,42 @@ vdecl_list_opt:
 vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
 	| typ ID ASSIGN expr SEMI                   { Primdecl_i($1, $2, $4) }
-	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
-	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
+	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arr_poly_decl($1, $5, $3) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i( $1, $5, $3, List.rev $8) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACE expr_list_opt RBRACE SEMI { Polydecl_i( $1, $5, $3, List.rev $8) }
 
-stmt_list_rev:
-	  stmt { [$1] }
-	| stmt_list_rev stmt { $2 :: $1 }
+stmt_list_opt:
+	PASS SEMI       {[]}
+  | stmt_list  { $1 }
+
+  stmt_list:
+    stmt  { [$1] }
+  | stmt_list stmt { $2 :: $1 }
 
 stmt:
 	expr SEMI { Expr $1 }
 	| RETURN SEMI { Return Noexpr }
 	| RETURN expr SEMI { Return $2 }
-	| IF LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE %prec NOELSE { If( $3, List.rev $6, [] ) }
-	| IF LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE ELSE LBRACE stmt_list_rev RBRACE { If( $3, List.rev $6, $10 ) }
-	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN LBRACE stmt_list_rev RBRACE { For($3, $5, $7, List.rev $10 ) }
-	| FOREACH LPAREN ID IN ID RPAREN LBRACE stmt_list_rev RBRACE { Foreach($3, $5, List.rev $8) }
-	| WHILE LPAREN expr RPAREN LBRACE stmt_list_rev RBRACE { While($3, List.rev $6) }
+	| LBRACE stmt_list_opt RBRACE { Block(List.rev $2) }
+	| IF LPAREN expr RPAREN stmt %prec NOELSE { If( $3, $5, Block([]) ) }
+	| IF LPAREN expr RPAREN stmt ELSE stmt { If( $3,  $5, $7 ) }
+	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9 ) }
+	/* | FOREACH LPAREN ID IN ID RPAREN stmt { Foreach($3, $5, $7) } */
+	| WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+	| BREAK SEMI             { Break }
 
 expr:
 	INTLIT						{ Intlit( $1 ) }
 	| FLOATLIT     				{ Floatlit( $1 ) }
+	| ID   	{ Id( $1 ) }
+	| ID LLBRACKET expr RRBRACKET 		{ Extr( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
 	| LT expr COMMA expr GT	%prec COM	{ Complexlit( $2, $4 ) }
 	| LBRACE expr_list_opt RBRACE  		{ Polylit( $2 ) }
+	| LBRACKET expr_list_opt RBRACKET { Arrlit( $2 )}
 	| FALSE            { Boollit( false ) }
 	| TRUE             { Boollit( true ) }
 	| STRINGLIT			{ Strlit( $1 ) }
-	| extr_asn_value		   { Extr( $1 ) }
 	 /* array, the whole array can be void, but any of the element cannot be void */
-  	| LBRACKET expr_list_opt RBRACKET { Arrlit( $2 )}
 	| LPAREN expr RPAREN { $2 }
 	/* Binop */
 	| expr PLUS   expr { Binop($1, Add,   $3) }
@@ -131,20 +143,17 @@ expr:
 	| MINUSONE expr { Unop( Subone, $2 ) }
 	/* function call */
 	| ID LPAREN expr_list_opt RPAREN { Call( $1, $3 ) }
+	| SQRT LPAREN expr RPAREN {Unop(Sqrt,$3)}
 	/* assignment */
-	| extr_asn_value ASSIGN expr { Asn( $1, $3 ) }
-
-extr_asn_value:/* value can be expressed by ID, ID[3] for array, ID[[3]] for poly */
-	ID   	{ Id( $1 )}
-	| ID LLBRACKET INTLIT RRBRACKET 		{ Polyextr( $1, $3 ) }/* for poly extraction */ /* assignment of poly coefficient */
-	| ID LBRACKET INTLIT RBRACKET 	{ Arrextr( $1, $3 ) }/* for array extraction */ /* assignment of poly, array, int, float, bool, string, complex */
+	| expr ASSIGN expr { Asn( $1, $3 ) }
 
 expr_list_opt:
 		         { [] }
 	| expr_list { List.rev $1 }
+
 expr_opt:
-				 { [] }
-	| expr { [$1] }
+				 { Noexpr }
+	| expr { $1 }
 
 expr_list:
 	expr 		 { [$1] }
