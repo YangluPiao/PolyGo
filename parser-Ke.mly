@@ -81,8 +81,10 @@ vdecl_list_opt:
 vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
 	| typ ID ASSIGN expr SEMI                   { Primdecl_i($1, $2, $4) }
-	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arrdecl($1, $5, $3) }
+	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arr_poly_decl($1, $5, $3) }
 	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list RBRACKET SEMI { Arrdecl_i($1, $5, $3, $8) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACE expr_list RBRACE SEMI { Polydecl_i( $1, $5, $3, $8) }
+
 
 stmt_list_opt:
 	PASS SEMI       {[]}
@@ -130,7 +132,7 @@ expr:
 	| expr GEQ    expr { Binop($1, Geq,   $3) }
 	| expr AND    expr { Binop($1, And,   $3) }
 	| expr OR     expr { Binop($1, Or,    $3) }
-	| expr MODULUS expr { Binop($1, Mod,    $3) }
+	| expr MODULUS expr { Binop($1, Modu,    $3) }
 	| VB expr VB 		{ Mod($2) }
 	/*  one operand */
 	| MINUS expr %prec NEG { Unop(Neg, $2) }

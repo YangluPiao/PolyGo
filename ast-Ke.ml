@@ -1,4 +1,4 @@
-type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
+type op = Add | Sub | Mult | Div | Modu | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
 type unop = Neg | Not | Addone | Subone | Sqrt
 type typ = Int | Float | Complex | Bool | String | Void | Poly
@@ -48,8 +48,9 @@ type formaldecl =
 type variabledecl = 
    Primdecl of typ * string
   |Primdecl_i of typ * string * expr
-  |Arrdecl of typ * string * int
+  |Arr_poly_decl of typ * string * int
   |Arrdecl_i of typ * string * int * expr list 
+  |Polydecl_i of typ * string * int * expr list 
 
 type functiondecl = 
   { 
