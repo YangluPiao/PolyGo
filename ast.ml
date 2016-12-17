@@ -1,32 +1,30 @@
-type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
+type op = Add | Sub | Mult | Div | Modu | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
 type unop = Neg | Not | Addone | Subone | Sqrt
 type typ = Int | Float | Complex | Bool | String | Void | Poly
 type bind = typ * string
 
-type extra_asn_value = 
+(* type extra_asn_value = 
   Id of string 
   | Polyextr of string * int
   | Arrextr of string * int
   | Poly_id of string * string
-  | Array_id of string * string
+  | Array_id of string * string *)
 
-type primary = 
-    Intlit of int
+
+type expr = 
+    Id of string
+  | Extr of string * expr 
+  | Intlit of int
   | Floatlit of float
   | Boollit of bool 
   | Strlit of string
-
-type expr = 
-    Primary of primary 
   | Complexlit of expr * expr
-  | Extr of extra_asn_value
   | Polylit of expr list 
   | Arrlit of expr list 
   | Binop of expr * op * expr
   | Unop of unop * expr
-  | Asn of extra_asn_value * expr
-  | Asn_extr of expr * expr
+  | Asn of expr * expr
   | Call of string * expr list
   | Mod of expr
   | Noexpr 
@@ -50,8 +48,9 @@ type formaldecl =
 type variabledecl = 
    Primdecl of typ * string
   |Primdecl_i of typ * string * expr
-  |Arrdecl of typ * string * int
+  |Arr_poly_decl of typ * string * int
   |Arrdecl_i of typ * string * int * expr list 
+  |Polydecl_i of typ * string * int * expr list 
 
 type functiondecl = 
   { 

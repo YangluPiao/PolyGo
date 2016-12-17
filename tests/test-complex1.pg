@@ -1,5 +1,5 @@
 int main(){
 	comp c = <1.0,2.0>;
-	print_c(c);
+	|<1.0,2.0>|;
 	return 0;
 }
