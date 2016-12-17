@@ -39,8 +39,9 @@ let translate (globals, functiondecl) =
   let type_of_global= function
       A.Primdecl (t,s) -> (t,s)
     | A.Primdecl_i  (t,s,_) -> (t,s) 
-    | A.Arrdecl      (t,s,_)->(t,s) 
+    | A.Arr_poly_decl      (t,s,_)->(t,s) 
     | A.Arrdecl_i    (t,s,_,_) -> (t,s)
+    | A.Polydecl_i (t,s,_,_) -> (t,s)
   in
 
       let init t= (match t with  A.Int -> L.const_int (ltype_of_typ t) 0
@@ -117,8 +118,9 @@ let translate (globals, functiondecl) =
     let type_of_locals = function
         A.Primdecl    (t,s)-> (t,s,0,init t)
       | A.Primdecl_i  (t,s,e) -> (t,s,0,init t) 
-      | A.Arrdecl      (t,s,i)->(t,s,i,init t) 
-      | A.Arrdecl_i    (t,s,i,e) -> (t,s,i,init t) in
+      | A.Arr_poly_decl      (t,s,i)->(t,s,i,init t) 
+      | A.Arrdecl_i    (t,s,i,e) -> (t,s,i,init t) 
+      | A.Polydecl_i (t,s,i,e) -> (t, s, i , init t) in
 
     let rec range a b =
                       if a > b then []
@@ -169,18 +171,12 @@ let translate (globals, functiondecl) =
   let whole_map = 
     let add_extra m s name = StringMap.add name s m in
     (*TODO: index of poly and complex*)
-    let init_extra  m (t,s,_,_)=  (match t with A.Poly -> 
-                               let length = 5 in
-                               let nums = List.map string_of_int (range 1 length) in
-                               let ss =  build_s s length in
-                               let new_name = List.map2 (fun a c ->a^c)ss nums in
-                               let s' = List.map (fun s->L.build_alloca d64_t s builder)new_name in(*TODO: Need more types*)
-                               List.fold_left2 add_extra m s' new_name 
-                             | A.Complex -> 
+    let init_extra  m (t,s,_,_)=  (match t with 
+                                     A.Complex -> 
                                             let image = s^"i" in
                                             let image_addr = L.build_alloca d64_t image builder in
                                             add_extra m image_addr image; 
-                             | _ -> m) in
+                              | _ -> m) in
     let whole_local = List.map type_of_locals fdecl.A.locals in
   List.fold_left (init_extra) basic_map whole_local  in
 
@@ -311,7 +307,7 @@ let translate (globals, functiondecl) =
     | A.Leq     -> L.build_icmp L.Icmp.Sle
     | A.Greater -> L.build_icmp L.Icmp.Sgt
     | A.Geq     -> L.build_icmp L.Icmp.Sge
-    | A.Mod -> raise(Failure("??Why are there two Mod ops?"))) in
+    | A.Modu    -> L.build_srem) in
     let float_op =(match op with
       A.Add     -> L.build_fadd
     | A.Sub     -> L.build_fsub
@@ -325,7 +321,7 @@ let translate (globals, functiondecl) =
     | A.Leq     -> L.build_fcmp L.Fcmp.Ole
     | A.Greater -> L.build_fcmp L.Fcmp.Ogt
     | A.Geq     -> L.build_fcmp L.Fcmp.Oge
-    | A.Mod -> raise(Failure("??Why are there two Mod op?"))) in
+    | A.Modu -> L.build_frem ) in
     let typ = get_expr_type e1' in
     let opp = (if typ = i32_t then int_op
                                   else float_op) in
@@ -394,6 +390,16 @@ let translate (globals, functiondecl) =
     | A.Noexpr -> [L.const_int i1_t 0]
     in
 
+
+(*       let init t= (match t with  A.Int -> L.const_int (ltype_of_typ t) 0
+                                | A.Float -> L.const_float (ltype_of_typ t) 0.0
+                                | A.Bool -> L.const_int (ltype_of_typ t) 0
+                                | A.Void -> L.const_null (ltype_of_typ t)
+                                | A.String -> L.const_pointer_null (ltype_of_typ t)
+                                | A.Complex -> L.const_float (ltype_of_typ t) 0.0
+                                | A.Poly -> L.const_float (ltype_of_typ t) 0.0
+                                )in *)
+      
     let init t= (match t with  A.Int -> [L.const_int (ltype_of_typ t) 0]
                                 | A.Float -> [L.const_float (ltype_of_typ t) 0.0]
                                 | A.Bool -> [L.const_int (ltype_of_typ t) 0]
@@ -405,10 +411,14 @@ let translate (globals, functiondecl) =
     let get_asn_local = function
         A.Primdecl_i  (t,s,e) -> (t,s,expr builder e,0)
       | A.Primdecl    (t,s)      -> (t,s,init t,0)
-      | A.Arrdecl      (t,s,index)->let arr_init = build_s (List.hd (init t)) (index) in (t,s,arr_init,index) 
-      | A.Arrdecl_i    (t,s,index,e) -> (match t with A.Poly | A.Complex -> raise(Failure("Do we supoort array of Poly or Complex!?"))
-                                                    | _ ->let arr_decl = List.map (fun [a]->a)(List.map (expr builder) e)in 
-                                              (t,s,arr_decl,index) 
+      | A.Arr_poly_decl      (t,s,index)->let arr_poly_init = build_s (List.hd (init t)) (index) in (t,s,arr_poly_init,index) 
+      | A.Arrdecl_i    (t,s,index,e) -> (match t with A.Complex -> raise(Failure("Do we supoort array of Poly or Complex!?"))
+                                                    | _ ->let arr_poly_decl = List.map (fun [a]->a)(List.map (expr builder) e)in 
+                                              (t,s,arr_poly_decl,index) 
+                                        )
+      | A.Polydecl_i (t,s,index,e) -> (match t with A.Complex -> raise(Failure("Do we supoort array of Poly or Complex!?"))
+                                                    | _ ->let arr_poly_decl = List.map (fun [a]->a)(List.map (expr builder) e)in 
+                                              (t,s,arr_poly_decl,index) 
                                         )
     in
 
