@@ -4,7 +4,7 @@
 %token LBRACKET RBRACKET LLBRACKET RRBRACKET 
 %token PLUS MINUS TIMES DIVIDE PLUSONE MINUSONE MODULUS VB ASSIGN SQRT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR NOT
-%token RETURN IF ELSE FOR FOREACH IN WHILE PASS BREAK
+%token RETURN IF ELSE FOR WHILE PASS BREAK
 %token INT FLOAT BOOL COMPLEX POLY STRING VOID
 
 %token <int> INTLIT
@@ -15,19 +15,16 @@
 
 %nonassoc NOELSE
 %nonassoc ELSE
-%nonassoc PASS
-%left COMMA
 %nonassoc VB
-%left ASSIGN
+%right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE MODULUS
-%right PLUSONE MINUSONE SQRT
+%right PLUSONE MINUSONE
 %right NOT NEG
-%right SQRT
 
 %start program
 %type <Ast.program> program
@@ -82,8 +79,8 @@ vdecl:
 	typ ID SEMI                                     { Primdecl($1, $2) }
 	| typ ID ASSIGN expr SEMI                   { Primdecl_i($1, $2, $4) }
 	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arr_poly_decl($1, $5, $3) }
-	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list RBRACKET SEMI { Arrdecl_i($1, $5, $3, $8) }
-	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACE expr_list RBRACE SEMI { Polydecl_i( $1, $5, $3, $8) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACE expr_list_opt RBRACE SEMI { Polydecl_i( $1, $5, $3, List.rev $8) }
 
 
 stmt_list_opt:
@@ -146,7 +143,7 @@ expr:
 	| expr ASSIGN expr { Asn( $1, $3 ) }
 
 
-expr_list_opt:
+/* expr_list_opt:
 		         { [] }
 	| expr_list {  List.rev $1 }
 expr_opt:
@@ -156,3 +153,11 @@ expr_opt:
 expr_list:
 	expr 		 { [$1] }
 	| expr_list COMMA expr { $3 :: $1 }
+	*/
+expr_list_opt:
+	  expr_opt { [$1] }
+	| expr_list_opt COMMA expr_opt { $3 :: $1 }
+
+expr_opt:
+				 { Noexpr }
+	| expr { $1 }

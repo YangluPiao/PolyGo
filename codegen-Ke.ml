@@ -212,7 +212,7 @@ let translate (globals, functiondecl) =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
-      (* A.Asn (ex,e) ->  
+      A.Asn (ex,e) ->  
       (*TODO: Shouldn't use length to determine type.*)
       (match ex with A.Id s -> (match List.length (expr builder e )with 1-> let e' = List.hd (expr builder e) 
                                                       in ignore(L.build_store e' (search_whole s) builder);[e']
@@ -227,7 +227,7 @@ let translate (globals, functiondecl) =
                                     let name = s^index and 
                                         e' = List.hd (expr builder e) 
                                             in ignore(L.build_store e' (search_whole name) builder);[e']
-      ) *)
+      )
 
      | A.Intlit i -> [L.const_int i32_t i]
      | A.Floatlit f -> [L.const_float  d64_t f]
@@ -239,6 +239,7 @@ let translate (globals, functiondecl) =
                                                  else [L.const_int i32_t 0])
     | A.Id s -> (try  [L.build_load (search_whole s) s builder;L.build_load (StringMap.find (s^"i") whole_map) (s^"i") builder]  with
                                                                         Not_found -> [L.build_load (search_whole s) "tmp" builder])
+    
     | A.Extr (s, e) -> let i = List.hd (expr builder e) in 
                     let i_option = L.int64_of_const i in 
                                       let index  = 
