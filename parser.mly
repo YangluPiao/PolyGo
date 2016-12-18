@@ -111,7 +111,7 @@ expr:
 	| STRINGLIT					{ Strlit( $1 ) }
 	| FALSE            { Boollit( false ) }
 	| TRUE             { Boollit( true ) }
-	| LT expr COMMA expr GT	   { Complexlit( $2, $4 ) }
+	| LT FLOATLIT COMMA FLOATLIT GT	   { Complexlit( $2, $4 ) }
 	| LBRACE expr_list_opt RBRACE  		{ Polylit($2 ) }
 	 /* array, the whole array can be void, but any of the element cannot be void */
   	| LBRACKET expr_list_opt RBRACKET { Arrlit($2 )}

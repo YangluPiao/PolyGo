@@ -19,7 +19,7 @@ type expr =
   | Floatlit of float
   | Boollit of bool 
   | Strlit of string
-  | Complexlit of expr * expr
+  | Complexlit of float * float
   | Polylit of expr list 
   | Arrlit of expr list 
   | Binop of expr * op * expr
