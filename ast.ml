@@ -50,7 +50,8 @@ type variabledecl =
   |Primdecl_i of typ * string * expr
   |Arr_poly_decl of typ * string * int
   |Arrdecl_i of typ * string * int * expr list 
-  |Polydecl_i of typ * string * int * expr list 
+  |Polydecl_i of typ * string * int * expr list
+  |Arr_poly_decl_i of typ * string * int * string 
 
 type functiondecl = 
   { 

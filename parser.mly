@@ -81,7 +81,7 @@ vdecl:
 	| typ LBRACKET INTLIT RBRACKET ID SEMI                           { Arr_poly_decl($1, $5, $3) }
 	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACKET expr_list_opt RBRACKET SEMI { Arrdecl_i($1, $5, $3, List.rev $8) }
 	| typ LBRACKET INTLIT RBRACKET ID ASSIGN LBRACE expr_list_opt RBRACE SEMI { Polydecl_i( $1, $5, $3, List.rev $8) }
-
+	| typ LBRACKET INTLIT RBRACKET ID ASSIGN ID SEMI {Arr_poly_decl_i($1,$5,$3,$7)}
 
 stmt_list_opt:
 	PASS SEMI       {[]}
@@ -107,6 +107,7 @@ expr:
 	  INTLIT				    { Intlit( $1 ) }
 	| ID 								 { Id($1) }
 	| ID LLBRACKET expr RRBRACKET 		{ Extr( $1, $3 ) }
+
 	| FLOATLIT     				{ Floatlit( $1 ) }
 	| STRINGLIT					{ Strlit( $1 ) }
 	| FALSE            { Boollit( false ) }

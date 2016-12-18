@@ -1,5 +1,4 @@
 int main(){
-	comp c;
-
+	comp c =<1.0,2.0>;
 	return 0;
 }
