@@ -8,7 +8,7 @@
 # Path to the LLVM interpreter
 #LLI="lli"
 #LLI="/usr/local/opt/llvm38/bin/lli-3.8"
-LLI="/usr/local/Cellar/llvm/3.9.0/bin/lli"
+LLI="/usr/lib/llvm-3.8/bin/lli"
 
 # Path to the polygo compiler.  Usually "./polygo.native"
 # Try "_build/polygo.native" if ocamlbuild was unable to create a symbolic link.
@@ -150,7 +150,7 @@ done
 
 shift `expr $OPTIND - 1`
 
-LLIFail() {
+LLIFail() {le
   echo "Could not find the LLVM interpreter \"$LLI\"."
   echo "Check your LLVM installation and/or modify the LLI variable in testall.sh"
   exit 1
