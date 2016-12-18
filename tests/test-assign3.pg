@@ -1,0 +1,21 @@
+void foo(){
+	int i = 10086;
+	int b = 10010;
+	string s = "Hey you!";
+	print(i+b);
+	print_s(s);
+}
+int main(){
+	int i = 1;
+	int j;
+	if(i>1){
+	print(i);
+	}
+	else{
+	for(i;i<5;++i)
+	foo();
+	}
+	j = ++i;
+	print(j);
+	return 0;
+}
