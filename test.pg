@@ -1,8 +1,0 @@
-void main()
-{
-  /*string s = "Hello World!";*/
-  string s;
-  s = "Hello World!";
-  print_string("Hello World!");
-  return 0;
-}
