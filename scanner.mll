@@ -26,6 +26,7 @@ rule token = parse
 | '*'      { TIMES }
 | '/'      { DIVIDE }
 | '='      { ASSIGN }
+| "sqrt"   { SQRT }
 | "=="     { EQ }
 | "!="     { NEQ }
 | "<="     { LEQ }
@@ -37,8 +38,6 @@ rule token = parse
 | "else"   { ELSE }
 | "for"    { FOR }
 | "while"  { WHILE }
-(* | "foreach"{ FOREACH } *)
-(* | "in"     { IN } *)
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
@@ -48,13 +47,9 @@ rule token = parse
 | "float"  { FLOAT }
 | "comp"   { COMPLEX }
 | "string" { STRING }
-| "intarr" { INTARR }
-| "floatarr" { FLOATARR }
-| "cplxarr" { CPLXARR }
 | "poly"   { POLY }
-| "sqrt"   { SQRT }
-| "break"  { BREAK }
 | "pass"   { PASS }
+| "break"  { BREAK }
 | ['0'-'9']+ as lxm { INTLIT(int_of_string lxm) }
 | ('.'['0'-'9']+Exp? | ['0'-'9']+('.'['0'-'9']*Exp? | Exp ) ) as lxm { FLOATLIT(float_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
