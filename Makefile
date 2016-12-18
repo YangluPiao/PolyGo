@@ -20,7 +20,7 @@ clean :
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
 
-OBJS = ast.cmx codegen.cmx parser.cmx scanner.cmx polygo.cmx
+OBJS = ast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx polygo.cmx
 
 polygo : $(OBJS)
 	ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis $(OBJS) -o polygo
@@ -45,12 +45,14 @@ ast.cmo :
 ast.cmx :
 codegen.cmo : ast.cmo
 codegen.cmx : ast.cmx
-polygo.cmo : scanner.cmo parser.cmi codegen.cmo ast.cmo
-polygo.cmx : scanner.cmx parser.cmx codegen.cmx ast.cmx
+polygo.cmo : semant.cmo scanner.cmo parser.cmi codegen.cmo ast.cmo
+polygo.cmx : semant.cmx scanner.cmx parser.cmx codegen.cmx ast.cmx
 parser.cmo : ast.cmo parser.cmi
 parser.cmx : ast.cmx parser.cmi
 scanner.cmo : parser.cmi
 scanner.cmx : parser.cmx
+semant.cmo : ast.cmo
+semant.cmx : ast.cmx
 parser.cmi : ast.cmo
 
 # Building the tarball
@@ -65,11 +67,11 @@ FAILS = assign1 assign2 assign3 dead1 dead2 expr1 expr2 for1 for2	\
     func9 global1 global2 if1 if2 if3 nomain return1 return2 while1	\
     while2
 
-TESTFILES = $(TESTS:%=test-%.pg) $(TESTS:%=test-%.out) \
-	    $(FAILS:%=fail-%.pg) $(FAILS:%=fail-%.err)
+TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
+	    $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
 
-TARFILES = ast.mli codegen.ml Makefile polygo.ml parser.mly README scanner.mll \
-	testall.sh $(TESTFILES:%=tests/%)
+TARFILES = ast.ml codegen.ml Makefile polygo.ml parser.mly README scanner.mll \
+	semant.ml testall.sh $(TESTFILES:%=tests/%)
 
 polygo-llvm.tar.gz : $(TARFILES)
 	cd .. && tar czf polygo-llvm/polygo-llvm.tar.gz \
