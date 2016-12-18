@@ -150,7 +150,7 @@ done
 
 shift `expr $OPTIND - 1`
 
-LLIFail() {le
+LLIFail() {
   echo "Could not find the LLVM interpreter \"$LLI\"."
   echo "Check your LLVM installation and/or modify the LLI variable in testall.sh"
   exit 1
