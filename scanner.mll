@@ -45,7 +45,7 @@ rule token = parse
 | "true"   { TRUE }
 | "false"  { FALSE }
 | "float"  { FLOAT }
-| "comp"   { COMPLEX }
+| "complex"   { COMPLEX }
 | "string" { STRING }
 | "poly"   { POLY }
 | "pass"   { PASS }
