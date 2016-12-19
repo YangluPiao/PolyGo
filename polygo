@@ -8,7 +8,6 @@ if [ $# -eq 1 ]; then
 	eval "rm -f ${basename}.ll"
 	eval "rm -f ${basename}.out"
 	eval "$polygo" "-c" "<" $1 "| tee -a" "${basename}.ll" &&
-	echo "Results: " &&
 	eval "$LLI" "${basename}.ll" "| tee -a" "${basename}.out" 
 elif [ $# -eq 2 ]; then
 	basename=`echo $2 | sed 's/.*\\///
@@ -19,11 +18,9 @@ elif [ $# -eq 2 ]; then
 		case "${flag}" in
 			a) eval "$polygo" "-a" "<" $2;;
 			l) eval "$polygo" "-l" "<" $2 "| tee -a" "${basename}.ll" &&
-				echo "Results: " &&
 		  		eval "$LLI" "${basename}.ll" "| tee -a" "${basename}.out";;
 		  	c) eval "$polygo" "-c" "<" $2 "| tee -a" "${basename}.ll" &&
-				echo "Results: " &&
-		        eval "$LLI" "${basename}.ll" "| tee -a" "${basename}.out"	;;
+		        eval "$LLI" "${basename}.ll" "| tee -a" "${basename}.out";;
 		    *) echo "Input Error. Instruction: to run a PolyGo source code, try ./polygo [-a|-l|-c] your_code";;
 		esac
 	done
@@ -31,9 +28,7 @@ fi
 }
 
 Run $*
-if [ $? -eq 0 ] ; then
-	echo "Execution Succeeds."
-else
+if [ $? -eq 1 ] ; then
 	echo "Input Error. Instruction: to run a PolyGo source code, try ./polygo [-a|-l|-c] your_code"
 fi
 
