@@ -130,6 +130,7 @@ let string_of_formaldecl = function
 
 let string_of_variabledecl = function
     Primdecl(a,b) -> string_of_typ a ^ " " ^ b ^ ";"
+  | Arr_poly_decl_i(a,b,c,d) -> string_of_typ a ^ " " ^ " [" ^ string_of_int c ^ "]" ^ b ^ " = " ^  d ^ ";"
   | Primdecl_i (a,b,c) -> string_of_typ a ^ " " ^ b ^ " = " ^ string_of_expr c ^ ";"
   | Arr_poly_decl(a,b,c) -> string_of_typ a ^ " [" ^ string_of_int c ^ "]" ^ b ^ ";" 
   | Polydecl_i (a,b,c,d) -> string_of_typ a ^ " [" ^ string_of_int c ^ "]" ^ b ^ " = " ^ "{" ^ String.concat ", " (List.map string_of_expr d) ^ "}" ^ ";"

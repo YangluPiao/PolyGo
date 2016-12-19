@@ -1,7 +1,11 @@
 int main(){
-	int i = 1;
-	while(true){
-		print(i);
+	poly[3]p = {1.0,2.0,3.0,4.0};
+	int i = order(p);
+	int j = 0;
+	print(i);
+	for (j;j<i;++j){
+		print(j);
+		print(p[[j]]);
 	}
 	return 0;
 }

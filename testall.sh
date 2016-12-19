@@ -163,7 +163,8 @@ if [ $# -ge 1 ]
 then
     files=$@
 else
-    files="tests/test-*.pg tests/fail-*.pg"
+    #files="tests/test-*.pg tests/fail-*.pg"
+    files="tests/test-*.pg"
 fi
 
 for file in $files
@@ -172,9 +173,9 @@ do
 	*test-*)
 	    Check $file 2>> $globallog
 	    ;;
-	*fail-*)
-	    CheckFail $file 2>> $globallog
-	    ;;
+	#*fail-*)
+	    #CheckFail $file 2>> $globallog
+	    #;;
 	*)
 	    echo "unknown file type $file"
 	    globalerror=1
