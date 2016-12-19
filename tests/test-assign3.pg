@@ -1,18 +1,7 @@
-void foo(){
-	string s = "Hey you!";
-	print_s(s);
-}
 int main(){
 	int i = 1;
-	int j;
-	if(i>1){
+	string s = "Hello World!";
 	print(i);
-	}
-	else{
-	for(i;i<5;++i)
-	foo();
-	}
-	j = ++i;
-	print(j);
+	print(s);
 	return 0;
 }

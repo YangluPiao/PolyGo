@@ -1,10 +1,7 @@
 int main(){
-	int a;
-	int b;
-	int c;
-	a =1;
-	b =2;
-	c = add(a,b);
+	int a = 1;
+	int b = 2;
+	int c = add(1,2);
 	print(c);
 	return 0;
 }

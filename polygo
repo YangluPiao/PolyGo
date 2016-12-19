@@ -1,0 +1,33 @@
+#!/bin/bash
+LLI="/usr/local/opt/llvm38/bin/lli-3.8"
+polygo="./polygo.native"
+Run (){
+if [ $# -eq 1 ]; then
+	basename=`echo $1 | sed 's/.*\\///
+	                         s/.pg//'`
+	eval "rm -f ${basename}.ll"
+	eval "rm -f ${basename}.out"
+	eval "$polygo" "-c" "<" $1 "| tee -a" "${basename}.ll" &&
+	eval "$LLI" "${basename}.ll" "| tee -a" "${basename}.out" 
+elif [ $# -eq 2 ]; then
+	basename=`echo $2 | sed 's/.*\\///
+	                         s/.pg//'`
+	eval "rm -f ${basename}.ll"
+	eval "rm -f ${basename}.out"
+	while getopts ':a:l:c:' flag; do
+		case "${flag}" in
+			a) eval "$polygo" "-a" "<" $2;;
+			l) eval "$polygo" "-l" "<" $2 "| tee -a" "${basename}.ll" &&
+		  		eval "$LLI" "${basename}.ll" "| tee -a" "${basename}.out";;
+		  	c) eval "$polygo" "-c" "<" $2 "| tee -a" "${basename}.ll" &&
+		        eval "$LLI" "${basename}.ll" "| tee -a" "${basename}.out";;
+		    *) echo "Input Error. Instruction: to run a PolyGo source code, try ./polygo [-a|-l|-c] your_code";;
+		esac
+	done
+fi
+}
+
+Run $*
+if [ $? -eq 1 ] ; then
+	echo "Input Error. Instruction: to run a PolyGo source code, try ./polygo [-a|-l|-c] your_code"
+fi

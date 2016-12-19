@@ -1,0 +1,16 @@
+int gcd(int x,int y){
+	int a = x;
+	int b = y;
+	while(a!=b){
+		if(a>b){
+			a = a-b;
+		}else{
+			b = b-a;
+		}
+	}
+	return a;
+}
+int main(){
+	print(gcd(11,121));
+	return 0;
+}

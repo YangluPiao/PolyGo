@@ -1,6 +1,5 @@
 int main(){
-	int i ;
-	i = 5;
+	int i = 5;
 	for(i;i>0;i=i-1)
 	print(i);
 	return 0;

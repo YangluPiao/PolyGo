@@ -1,0 +1,8 @@
+float double(float a){
+	return a;
+}
+int main(){
+	float a = 4.0;
+	print(double(a));
+	return 0;
+}

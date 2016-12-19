@@ -7,8 +7,8 @@
 
 # Path to the LLVM interpreter
 #LLI="lli"
+#LLI="/usr/local/opt/llvm38/bin/lli-3.8"
 LLI="/usr/local/opt/llvm38/bin/lli-3.8"
-# LLI="/usr/lib/llvm-3.8/bin/lli"
 
 # Path to the polygo compiler.  Usually "./polygo.native"
 # Try "_build/polygo.native" if ocamlbuild was unable to create a symbolic link.
@@ -34,8 +34,8 @@ Usage() {
 
 SignalError() {
     if [ $error -eq 0 ] ; then
-	echo "FAILED"
-	error=1
+    echo "FAILED"
+    error=1
     fi
     echo "  $1"
 }
@@ -46,8 +46,8 @@ Compare() {
     generatedfiles="$generatedfiles $3"
     echo diff -b $1 $2 ">" $3 1>&2
     diff -b "$1" "$2" > "$3" 2>&1 || {
-	SignalError "$1 differs"
-	echo "FAILED $1 differs from $2" 1>&2
+    SignalError "$1 differs"
+    echo "FAILED $1 differs from $2" 1>&2
     }
 }
 
@@ -56,8 +56,8 @@ Compare() {
 Run() {
     echo $* 1>&2
     eval $* || {
-	SignalError "$1 failed on $*"
-	return 1
+    SignalError "$1 failed on $*"
+    return 1
     }
 }
 
@@ -66,8 +66,8 @@ Run() {
 RunFail() {
     echo $* 1>&2
     eval $* && {
-	SignalError "failed: $* did not report an error"
-	return 1
+    SignalError "failed: $* did not report an error"
+    return 1
     }
     return 0
 }
@@ -94,14 +94,14 @@ Check() {
     # Report the status and clean up the generated files
 
     if [ $error -eq 0 ] ; then
-	if [ $keep -eq 0 ] ; then
-	    rm -f $generatedfiles
-	fi
-	echo "OK"
-	echo "###### SUCCESS" 1>&2
+    if [ $keep -eq 0 ] ; then
+        rm -f $generatedfiles
+    fi
+    echo "OK"
+    echo "###### SUCCESS" 1>&2
     else
-	echo "###### FAILED" 1>&2
-	globalerror=$error
+    echo "###### FAILED" 1>&2
+    globalerror=$error
     fi
 }
 
@@ -126,25 +126,25 @@ CheckFail() {
     # Report the status and clean up the generated files
 
     if [ $error -eq 0 ] ; then
-	if [ $keep -eq 0 ] ; then
-	    rm -f $generatedfiles
-	fi
-	echo "OK"
-	echo "###### SUCCESS" 1>&2
+    if [ $keep -eq 0 ] ; then
+        rm -f $generatedfiles
+    fi
+    echo "OK"
+    echo "###### SUCCESS" 1>&2
     else
-	echo "###### FAILED" 1>&2
-	globalerror=$error
+    echo "###### FAILED" 1>&2
+    globalerror=$error
     fi
 }
 
 while getopts kdpsh c; do
     case $c in
-	k) # Keep intermediate files
-	    keep=1
-	    ;;
-	h) # Help
-	    Usage
-	    ;;
+    k) # Keep intermediate files
+        keep=1
+        ;;
+    h) # Help
+        Usage
+        ;;
     esac
 done
 
@@ -163,23 +163,22 @@ if [ $# -ge 1 ]
 then
     files=$@
 else
-    #files="tests/test-*.pg tests/fail-*.pg"
-    files="tests/test-*.pg"
+    files="tests/test-*.pg tests/fail-*.pg"
 fi
 
 for file in $files
 do
     case $file in
-	*test-*)
-	    Check $file 2>> $globallog
-	    ;;
-	#*fail-*)
-	    #CheckFail $file 2>> $globallog
-	    #;;
-	*)
-	    echo "unknown file type $file"
-	    globalerror=1
-	    ;;
+    *test-*)
+        Check $file 2>> $globallog
+        ;;
+    *fail-*)
+        CheckFail $file 2>> $globallog
+        ;;
+    *)
+        echo "unknown file type $file"
+        globalerror=1
+        ;;
     esac
 done
 

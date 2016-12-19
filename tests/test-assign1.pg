@@ -1,16 +1,8 @@
-int main()
-{
-	int i;
-	float j;
-	string s;
-	bool b;
-	i = 10086;
-	j = 1.2345;
-	s = "Hey";
-	b = true;
-	print(i);
-	print_f(j);
-	print_s(s);
-	print(b);
-	return 0;
+int main(){
+	int a = 1;
+	int a = 2;
+	float f = 1.0;
+	float f = 1.2;
+	print(a);
+	print(f);
 }

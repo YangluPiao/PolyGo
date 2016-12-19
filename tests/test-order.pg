@@ -1,0 +1,6 @@
+int main(){
+	poly[2]p={1.0,2.0,3.0};
+	int i = order(p);
+	print(i);
+	return 0;
+}

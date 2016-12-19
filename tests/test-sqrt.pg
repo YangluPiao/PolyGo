@@ -1,4 +1,4 @@
 int main(){
-	print(|<1.0,2.0>|);
+	print(sqrt(4.0));
 	return 0;
 }

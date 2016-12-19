@@ -1,0 +1,46 @@
+float distance( float t )
+{
+poly [3] s = {8.0, 1.0, 2.0, 1.0};
+float d = s[[0]] + s[[1]] * t + s[[2]] * t * t + s[[3]] * t * t;
+print("Distance increases in the power of:");
+print(order(s));
+return d;
+
+}
+
+float velocity( float t )
+{
+poly [2] v = {24.0, 2.0, 2.0};
+float d = v[[0]] + v[[1]] * t + v[[2]] * t * t;
+print("Velocity increases in the power of:");
+print(order(v));
+return d;
+}
+
+float acceleration( float t )
+{
+poly [1] a = {48.0, 1.0};
+float d = a[[0]] + a[[1]] * t;
+print("Accelerated speed increases in the power of:");
+print(order(a));
+return d;
+}
+
+
+int main()
+{
+float t = 2.0;
+float d = distance(t);
+float v = velocity(t);
+float a = acceleration(t);
+print("Time t is:");
+print(t);
+print("After t seconds, the distance is:");
+print (d);
+print("After t seconds, the velocity is:");
+print (v);
+print("After t seconds, the accelerated speed is:");
+print (a);
+return 0;
+}
+

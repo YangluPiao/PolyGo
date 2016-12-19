@@ -66,8 +66,8 @@ let type_of_global= function
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
     let printf_func = L.declare_function "printf" printf_t the_module in
- let printf_s = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
-    let printf_func_s = L.declare_function "printf" printf_s the_module in
+(*  let printf_s = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+    let printf_func_s = L.declare_function "printf" printf_s the_module in *)
   let printf_f = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
     let printf_func_f = L.declare_function "printf" printf_f the_module in
 
@@ -115,8 +115,9 @@ let type_of_global= function
                                       | _ -> (match t with A.Int -> [L.const_int i32_t 0]
                                                         | A.Float -> [L.const_float d64_t 0.0] 
                                                         | A.String -> [L.const_pointer_null (ltype_of_typ t)] 
-                                                        | A.Bool -> [L.const_int i1_t 0] 
-                                                        | _ -> raise(Failure("Invalid Type")))
+                                                        | A.Bool -> [L.const_int i1_t 0]
+                                                        | A.Poly -> [L.const_float d64_t 0.0] 
+                                                        | _ -> raise(Failure("Invalid Type123")))
                                       (*  *)  in
     let init_local t length = (match t with  A.Int -> List.map (fun i -> A.Intlit i) (zeros_int length)
                                 | A.Bool -> [A.Intlit 0]
@@ -136,8 +137,8 @@ let type_of_global= function
                                                                                         |_ -> (init_local t 1) ) in (t,s,0,ee,mark)
                                       | _ -> (t,s,0,[e],mark))
       | A.Arr_poly_decl      (t,s,i)->(match t with A.Poly ->(t,s,i,(init_local t i),0)| _ -> (t,s,i,(init_local t (i-1)),0))
-      | A.Arrdecl_i    (t,s,i,e) -> let mark = (match List.hd e with A.Id _-> 2| _ -> 1) in (t,s,i,e,mark) 
-      | A.Polydecl_i (t,s,i,e) -> let mark = (match List.hd e with A.Id _-> 2| _ -> 1) in (t, s,i,e,mark) 
+      | A.Arrdecl_i    (t,s,i,e) -> let mark = (match List.hd e with A.Id _-> 2| _ -> 2) in (t,s,i,e,mark) 
+      | A.Polydecl_i (t,s,i,e) -> let mark = (match List.hd e with A.Id _-> 2| _ -> 2) in (t, s,i,e,mark) 
       | A.Arr_poly_decl_i (t,s1,i,_) ->(match t with A.Poly ->(t,s1,i,(init_local t i),2)| _ -> (t,s1,i,(init_local t (i-1)),2)) in
 
   (* Store formal and local variables *)
@@ -275,8 +276,8 @@ let type_of_global= function
     | A.Greater -> L.build_fcmp L.Fcmp.Ogt
     | A.Geq     -> L.build_fcmp L.Fcmp.Oge
     | A.Modu -> L.build_frem ) in
-    let typ = get_expr_type e1' in
-    let opp = (if typ = i32_t then int_op
+    let typ1 = get_expr_type e1' and typ2 = get_expr_type e2' in
+    let opp = (if typ1 = i32_t then (if typ2= i32_t then int_op else float_op)
                                   else float_op) in
     match List.length e1' with 1 -> let x = List.hd e1' in 
                                    List.map (fun a -> opp x a "tmp" builder)e2'
@@ -300,7 +301,7 @@ let type_of_global= function
     )
     | A.Unop(op, e) ->let e' = List.hd (expr builder e ) in  
                                 let var_opt = L.float_of_const e' in
-                                let var = (match var_opt with None -> 10.0
+                                let var = (match var_opt with None -> 0.0
                                                           | Some v1 -> v1) in
                                 let typ = get_expr_type [e'] in
                                 let neg = (if typ = i32_t then (L.build_neg e' "tmp" builder )else (L.build_fneg e' "tmp" builder)) in 
@@ -331,11 +332,10 @@ let type_of_global= function
   ( let format_type = 
     let e_type = L.type_of ( List.hd (e')) in 
       ( if e_type = i32_t then int_format_str
-                        else  float_format_str
-                                                  )
+                        else ( if e_type = d64_t then float_format_str
+                                                 else str_format_str ))
+                
                       in  [L.build_call printf_func [| format_type ; (List.hd (e')) |] "printf" builder] ))
- | A.Call ("print_s", [e]) -> [L.build_call printf_func_s 
-        [| str_format_str; (List.hd (expr builder e)) |] "printf" builder]
  |  A.Call ("print_n", [e]) -> [L.build_call printf_func_f [| image_format_str; (List.hd (expr builder e)) |] "printf" builder]
     | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in

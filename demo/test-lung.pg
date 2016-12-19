@@ -1,0 +1,56 @@
+float F(float x)
+{	
+	float a = -0.123 * x * x + 0.362 * x + 0.202;
+    return a;
+}
+
+float Fd(float x)
+{
+    return (-0.246 * x + 0.362);
+}
+
+float fabs(float x)
+{
+	float a;
+	if( x > 0.0 )
+		a = x ;
+	else
+		a = -x;
+	return a;
+}
+
+void main()
+{
+    float x0 = 4.0;
+    float h;
+    float err = 0.0001;
+    float root;
+    float x1;
+    int miter = 10;
+    int iter;
+    float fncvalue;
+    float max;
+    print("Approximation 4,the max error 0.0001, and the maximum number of iterations 10");
+    iter=1;
+    while(iter <= miter)
+    {
+        h = F(x0)/Fd(x0);	/* calculatinf f(x)/f'(x)as we do in Newton Raphson method */
+        print(iter);
+        print(h);
+        x1 = x0 - h;	/* x1=x0-f(x)/f'(x) */
+        if(fabs(h) < err) /*If 2 approximations is below the max error */
+        {
+            root = x1;   /*then make the approximation as the root */
+            break;
+        }
+        else
+        	x0 = x1;
+        ++ iter;
+    }
+   	print("maximum is at:");
+    print(root);
+    max = -0.041 * root * root * root + 0.181 * root * root + 0.202 * root;
+    print("maximum value is at");
+    print(max);
+    return;
+}

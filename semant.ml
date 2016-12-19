@@ -15,7 +15,7 @@ let semant_check ast  =
 		let built_in_decls =  StringMap.add "print"
 			{ ftyp = Void; fname = "print"; formals = [Prim_f_decl(Int, "x")];
 			locals = []; body = [] } (StringMap.empty)
-		in   (*built-in function*)  (*How to add the definition of built-in function? *)
+		in   (* built-in function how to check the polymorphism of print??? *)
 		List.fold_left (fun m fd -> StringMap.add fd.fname fd m) built_in_decls (List.rev (snd ast))
 	in		
 	let function_decl s = try StringMap.find s function_decls
@@ -51,7 +51,7 @@ let semant_check ast  =
 		if s = "float array" then "float" else 
 		if s = "bool array" then "bool" else 
 		if s = "complex array" then "complex" 
-	    else "poly_co"
+	    else "float"
 	in
 	let check_expr expression m =   (* Give the type of the expression *)
 		let build_formal_list l e = match e with    (* Build the formal list for Call expression *)
@@ -90,9 +90,12 @@ let semant_check ast  =
 		  								Neg when t = "int" || t = "float" -> t
 		  								| Not when t = "bool" -> "bool"
 		  								| Addone | Subone when t = "int" -> "int"
+		  								| Sqrt when t = "float" -> "float"
 		  								| _ -> raise (Failure ("illegal unary operator " ^ string_of_unop op ^
 		  										" " ^ t ^ " in " ^ string_of_expr e))
 		  							)
+		  	| Order(op) as ex-> if (expr_typ op m) = "poly" then "int"
+		  					else raise (Failure ("illegal type " ^ expr_typ op m ^ " in " ^ string_of_expr ex ^ ". Poly is expected."))
 		  	| Id s -> typ_of_identifier s map
 			| Extr (s, e) as ex -> if expr_typ e map = "int" then		(* array and poly indexing *)
 							let t = typ_of_identifier s map in
@@ -166,6 +169,7 @@ let semant_check ast  =
 												raise(Failure("type " ^ string_of_typ t ^ " is illegal in " ^ string_of_variabledecl decl))
 											else check_poly_init i id l m decl;
 											StringMap.add id (string_of_typ t) m
+			| Arr_poly_decl_i (t, id1, _, id2) -> ignore(typ_of_identifier id2 m); StringMap.add id1 (typ_arrtyp (string_of_typ t)) m
 			in
 			create variabledecl
 		in
