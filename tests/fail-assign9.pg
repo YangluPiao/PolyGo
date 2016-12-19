@@ -1,0 +1,6 @@
+int main()
+{
+	int [2]a = [1,2];
+	a = [2.5, 3.5];	/* Fail assign float array to int array */
+	return 0;
+}

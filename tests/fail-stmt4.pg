@@ -1,0 +1,8 @@
+int main(){
+	int a = 1;
+	int b = 0;
+	if(a) {		/* a is not a boolean predicate */
+		++b;
+	}
+	return b;
+}

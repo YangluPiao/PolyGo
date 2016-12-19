@@ -1,0 +1,5 @@
+int main(){
+	int a = 1;
+	break;	/* illegal break, not in a for or while loop */
+	return a;
+}

@@ -1,0 +1,1 @@
+Fatal error: exception Failure("illegal actual argument found in add(2, 1.5)")

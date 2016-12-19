@@ -1,0 +1,7 @@
+int a = 1;
+float b = 2.5;
+
+int main(){
+	int a = b;	/* assign global float variable b to int */
+	return b;
+}

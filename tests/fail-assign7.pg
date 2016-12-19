@@ -1,0 +1,6 @@
+int main()
+{
+	int a = 1;
+	float b = a;	/* Fail assign int to float */
+	return 0;
+}
