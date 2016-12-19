@@ -1,8 +1,5 @@
 void foo(){
-	int i = 10086;
-	int b = 10010;
 	string s = "Hey you!";
-	print(i+b);
 	print_s(s);
 }
 int main(){

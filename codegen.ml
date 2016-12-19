@@ -66,7 +66,8 @@ let type_of_global= function
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
     let printf_func = L.declare_function "printf" printf_t the_module in
-
+ let printf_s = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+    let printf_func_s = L.declare_function "printf" printf_s the_module in
   let printf_f = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
     let printf_func_f = L.declare_function "printf" printf_f the_module in
 
@@ -92,7 +93,7 @@ let type_of_global= function
   
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
     and float_format_str = L.build_global_stringptr "%f\n" "float" builder
-    (* and str_format_str = L.build_global_stringptr "%s\n" "str" builder *)
+    and str_format_str = L.build_global_stringptr "%s\n" "str" builder 
     and real_format_str = L.build_global_stringptr "%.3f+" "real" builder 
     and image_format_str = L.build_global_stringptr "%.3fi\n" "image" builder in
     (* Construct the function's "locals": formal arguments and locally
@@ -111,7 +112,11 @@ let type_of_global= function
     let init_val t expr = match expr with A.Intlit i -> [L.const_int i32_t i]
                                       | A.Floatlit f -> [L.const_float d64_t f]
                                       | A.Complexlit (e1,e2) -> [L.const_float d64_t e1;L.const_float d64_t e2]
-                                      | _ -> match t with A.Int -> [L.const_int i32_t 0]|A.Float -> [L.const_float d64_t 0.0] | _ -> raise(Failure("Invalid Type"))
+                                      | _ -> (match t with A.Int -> [L.const_int i32_t 0]
+                                                        | A.Float -> [L.const_float d64_t 0.0] 
+                                                        | A.String -> [L.const_pointer_null (ltype_of_typ t)] 
+                                                        | A.Bool -> [L.const_int i1_t 0] 
+                                                        | _ -> raise(Failure("Invalid Type")))
                                       (*  *)  in
     let init_local t length = (match t with  A.Int -> List.map (fun i -> A.Intlit i) (zeros_int length)
                                 | A.Bool -> [A.Intlit 0]
@@ -329,7 +334,8 @@ let type_of_global= function
                         else  float_format_str
                                                   )
                       in  [L.build_call printf_func [| format_type ; (List.hd (e')) |] "printf" builder] ))
-
+ | A.Call ("print_s", [e]) -> [L.build_call printf_func_s 
+        [| str_format_str; (List.hd (expr builder e)) |] "printf" builder]
  |  A.Call ("print_n", [e]) -> [L.build_call printf_func_f [| image_format_str; (List.hd (expr builder e)) |] "printf" builder]
     | A.Call (f, act) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
@@ -440,14 +446,16 @@ let type_of_global= function
         ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
     in
 
-    (* Build the code for each statement in the function *)
-    let dummy_bb = L.append_block context "dummy_bb" the_function in
+  (* Build the code for each statement in the function *)
+    let dummy_bb = L.append_block context "dummy.toremove.block" the_function in
     let break_builder = dummy_bb in
     let (builder, _) = (stmt (builder, break_builder) (A.Block fdecl.A.body))  in
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.A.ftyp with
         A.Void -> L.build_ret_void
-      | t -> L.build_ret (L.const_int (ltype_of_typ t) 0));
+      | A.Int -> L.build_ret (L.const_int i32_t 0)
+      | A.Float -> L.build_ret (L.const_float d64_t 0.0)
+      | _ -> L.build_ret_void);
     ignore(L.builder_at_end context dummy_bb);
     ignore(L.block_terminator dummy_bb);
     ignore(L.delete_block dummy_bb);

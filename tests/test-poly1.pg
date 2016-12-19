@@ -1,6 +1,6 @@
 int main()
 {
-	int a ;
-	float a;
+	poly[2]p={1.0,2.0,3.0};
+	poly[2]q={4.0,3.0,1.0};
 	return 0;
 }
