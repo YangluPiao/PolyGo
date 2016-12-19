@@ -1,0 +1,6 @@
+int main()
+{
+	float a;
+	a = true; /* Fail: assign a bool to an float */
+	return 0;
+}

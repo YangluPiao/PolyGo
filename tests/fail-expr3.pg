@@ -1,0 +1,7 @@
+int main()
+{
+	int [2]a;
+	float b = 2.5;
+	a = [2, 1.5+b]; /* return type of 1.5+b is float,can not be assigned to int array */
+	return 0;
+}

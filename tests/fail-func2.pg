@@ -1,0 +1,4 @@
+int add(int a, int b)	/* No main function */
+{
+	return b;
+}

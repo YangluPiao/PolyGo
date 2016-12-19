@@ -1,0 +1,5 @@
+int main()
+{
+	int a = 3.5;	/* illegal assignment float to int in initialization */
+	return 0;
+}

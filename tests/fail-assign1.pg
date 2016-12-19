@@ -1,0 +1,6 @@
+int main()
+{
+	int i;
+	i = 3.5; /* Fail: assign a float to an int */
+	return 0;
+}

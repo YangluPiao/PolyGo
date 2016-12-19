@@ -1,0 +1,11 @@
+int add(int a, int a)	/* duplicate formal */
+{
+	return a;
+}
+
+int main()
+{
+	int a;
+	a = add(1, 2);
+	return a;
+}
