@@ -1,0 +1,6 @@
+int main()
+{
+	int [2]a;
+	a = 1; /* Fail: assign a int to an int array */
+	return 0;
+}
