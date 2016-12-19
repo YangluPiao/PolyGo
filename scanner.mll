@@ -48,6 +48,7 @@ rule token = parse
 | "complex"   { COMPLEX }
 | "string" { STRING }
 | "poly"   { POLY }
+| "order"  { ORDER }
 | "pass"   { PASS }
 | "break"  { BREAK }
 | ['0'-'9']+ as lxm { INTLIT(int_of_string lxm) }

@@ -1,5 +1,7 @@
 int main(){
-	int i = 12312;
-	print(i);
+	int i = 1;
+	while(true){
+		print(i);
+	}
 	return 0;
 }

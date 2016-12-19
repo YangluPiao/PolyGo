@@ -7,6 +7,7 @@ type bind = typ * string
 
 type expr = 
     Id of string
+  | Order of expr
   | Extr of string * expr 
   | Intlit of int
   | Floatlit of float
@@ -104,6 +105,7 @@ let rec string_of_expr = function
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_unop o ^ "(" ^ string_of_expr e ^ ")"
   | Mod(e) -> "|" ^ string_of_expr e ^ "|"
+  | Order(e)->"order(" ^ string_of_expr e ^ ")"
   | Asn(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
