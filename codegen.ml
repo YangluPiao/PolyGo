@@ -132,13 +132,13 @@ let translate (globals, functiondecl) =
     let init_local t length = (match t with  A.Int -> List.map (fun i -> A.Intlit i) (zeros_int length)
                                 | A.Bool -> [A.Intlit 0]
                                 | A.Float -> List.map (fun f -> A.Floatlit f) (zeros_float length)
-                                | A.Complex -> [A.Floatlit 0.0;A.Floatlit 0.0]
+                                | A.Complex -> List.map (fun e -> A.Floatlit e)(zeros_float length)
                                 | A.Poly -> List.map (fun f -> A.Floatlit f) (zeros_float length)
                                 | _ -> [A.Intlit 0]
                                 )in
     let type_of_locals = function
-        A.Primdecl    (t,s)-> (match t with A.Complex -> (t,s,0,(init_local t 2),0)| _ -> (t,s,0,(init_local t 0),0))
-      | A.Primdecl_i  (t,s,e) -> let mark = (match e with A.Id s-> 2| _ -> 1) in (match t with A.Complex -> (t,s,2,[e],mark)| _ -> (t,s,0,[e],mark))
+        A.Primdecl    (t,s)-> (match t with A.Complex -> (t,s,0,(init_local t 1),0)| _ -> (t,s,0,(init_local t 0),0))
+      | A.Primdecl_i  (t,s,e) -> let mark = (match e with A.Id s-> 2| _ -> 1) in (match t with A.Complex -> let ee = (match e with A.Complexlit (e1,e2)->[A.Floatlit e1;A.Floatlit e2]) in (t,s,0,ee,mark)| _ -> (t,s,0,[e],mark))
       | A.Arr_poly_decl      (t,s,i)->(match t with A.Poly ->(t,s,i,(init_local t i),0)| _ -> (t,s,i,(init_local t (i-1)),0))
       | A.Arrdecl_i    (t,s,i,e) -> let mark = (match List.hd e with A.Id s-> 2| _ -> 1) in (t,s,i,e,mark) 
       | A.Polydecl_i (t,s,i,e) -> let mark = (match List.hd e with A.Id s-> 2| _ -> 1) in (t, s,i,e,mark) 
@@ -156,10 +156,9 @@ let translate (globals, functiondecl) =
       let local_var =   (match length with 0 -> (match local_typ with A.Complex -> (let addr = L.build_array_alloca d64_t (L.const_int i32_t 2) name builder in
                                                                                    let r = range 0 1 in 
                                                                                    let i  = List.map (fun index -> [|L.const_int i32_t index|]) r in
-                                                                                   let addr' = List.map (fun i -> L.build_in_bounds_gep (addr) i "comp_addr" builder)i in
-                                                                                   let asn_e = init_val (List.hd e) in
-                                                                                   ignore(List.map2 (fun e addr -> L.build_store e addr  builder) asn_e addr')
-                                                                                  ;addr)
+                                                                                   let addr' = List.map (fun i -> L.build_in_bounds_gep addr i "comp_addr" builder)i in
+                                                                                   let asn_e = (List.map (fun e -> List.hd (init_val e)) e) in
+                                                                                   ignore(List.map2 (fun addr e-> L.build_store e addr builder)addr' asn_e);addr)
                                                                   | _ -> let addr = L.build_alloca (ltype_of_typ local_typ) name builder in 
                                                                   ignore(L.build_store (List.hd (init_val (List.hd e))) addr builder);addr)
                                       | _ ->(match local_typ with A.Poly -> (let addr = L.build_array_alloca d64_t (L.const_int i32_t (length+1)) name builder in
