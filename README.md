@@ -34,3 +34,7 @@ make clean && make && ./mytest.sh
 <br>
 3. `test.pg` is just a small demo, you can play with it if you like. But I cannot guarantee our compiler can do something more than print a string. :)
 <br>
+<br>
+14:52 02/07/2017<br>
+1. Almost forgot to update this README file. Now our language can pass the test sweet and do something more. Please see our final report.
+<br>
