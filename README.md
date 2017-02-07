@@ -36,5 +36,5 @@ make clean && make && ./mytest.sh
 <br>
 <br>
 14:52 02/07/2017<br>
-1. Almost forgot to update this README file. Now our language can pass the test sweet and do something more. Please see our final report.
+1. Almost forgot to update this README file. Now our language can pass the test sweet and do something more. Please check our final report.
 <br>
