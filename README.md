@@ -1,40 +1,17 @@
 # PolyGo
-For our team project.<br>
-<br>
-###What's new:<br>
-<br>
-16:00 11/16<br>
-1. Uploaded `ast_checker.ml`, use command ```ocamlbuild ast_check.native" ```to build the `ast_checker`.<br>
-2. Uploaded `pretty_print.ml`.<br>
-3. Made change to `newast.ml`.<br>
-```ocaml
-locals: variabledecl list;
+###Usage:<br>
+1. `git clone` or download the zip file.<br>
+2. Build the compiler by
+```
+make
+```<br>
+3. Run demo by 
+```
+sh polygo ./demo/name-of-demo-file.pg
 ```
 <br>
-21:00 11/16<br>
-1. Uploaded `newast.ml` and `newparser.mly`, with reduce/shift conflicts eliminated.<br>
-<br>
-11:52 11/19<br>
-1. Uploaded working `ast.mli` and `parser.mly`.<br>
-<br>
-19:34 11/19<br>
-1. Add array initialize checker.<br>
-2. Cancel `typ_a`, all types are included in `typ`.<br>
-<br>
-20:20 11/22<br>
-1. Add `polygo.ml`, `codegen.ml`, `mytest.sh`, `test.pg`. Currently we can just do something like:<br>
-```C
-print("Hello world");
-```
-<br>
-2. Update `Makefile`, in order to run our compiler, use this command in terminal:
-```Shell
-make clean && make && ./mytest.sh
-```
-<br>
-3. `test.pg` is just a small demo, you can play with it if you like. But I cannot guarantee our compiler can do something more than print a string. :)
-<br>
-<br>
-14:52 02/07/2017<br>
-1. Almost forgot to update this README file. Now our language can pass the test sweet and do something more. Please check our final report.
-<br>
+ or directly run test suite directly by 
+ ```
+ sh testall.sh
+ ```
+ 4. If something goes wrong while running a `name-of-test-file.pg` file, a `name-of-test-file.log` file will be generated and you can check it out.
