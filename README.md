@@ -1,5 +1,6 @@
 # PolyGo
 ###Usage:<br>
+<br>
 1. `git clone` or download the zip file.<br>
 2. Build the compiler by<br>
 ```
