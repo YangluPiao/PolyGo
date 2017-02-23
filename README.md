@@ -17,3 +17,5 @@ sh testall.sh
 ```
 <br>
 4. If something goes wrong while running a `name-of-test-file.pg` file, a `name-of-test-file.log` file will be generated and you can check it out.
+<br>
+5. Read the `final report.pdf` for more details about the language.
